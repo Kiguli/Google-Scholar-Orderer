@@ -364,8 +364,8 @@
       }
     }
 
-    // Create JCR badge for journals (if different from SJR)
-    if (ranking.jcr && ranking.jcr !== ranking.sjr) {
+    // Create JCR badge for journals
+    if (ranking.jcr) {
       const jcrConfig = CONFIG.jcrBadges[ranking.jcr];
       if (jcrConfig) {
         const jcrBadge = createBadgeElement(
