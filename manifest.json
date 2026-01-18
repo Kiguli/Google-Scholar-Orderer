@@ -1,0 +1,82 @@
+{
+  "manifest_version": 3,
+  "name": "Google Scholar Orderer",
+  "version": "1.0.0",
+  "description": "Sort Google Scholar results by citations and display CORE venue rankings",
+
+  "content_scripts": [
+    {
+      "matches": [
+        "https://scholar.google.com/*",
+        "https://scholar.google.co.uk/*",
+        "https://scholar.google.ca/*",
+        "https://scholar.google.com.au/*",
+        "https://scholar.google.de/*",
+        "https://scholar.google.fr/*",
+        "https://scholar.google.es/*",
+        "https://scholar.google.it/*",
+        "https://scholar.google.nl/*",
+        "https://scholar.google.co.jp/*",
+        "https://scholar.google.co.kr/*",
+        "https://scholar.google.co.in/*",
+        "https://scholar.google.com.br/*",
+        "https://scholar.google.ch/*",
+        "https://scholar.google.at/*",
+        "https://scholar.google.se/*",
+        "https://scholar.google.no/*",
+        "https://scholar.google.dk/*",
+        "https://scholar.google.fi/*",
+        "https://scholar.google.pl/*",
+        "https://scholar.google.pt/*",
+        "https://scholar.google.be/*",
+        "https://scholar.google.co.nz/*",
+        "https://scholar.google.com.sg/*",
+        "https://scholar.google.com.hk/*",
+        "https://scholar.google.co.il/*"
+      ],
+      "js": ["content.js"],
+      "css": ["styles.css"],
+      "run_at": "document_idle"
+    }
+  ],
+
+  "web_accessible_resources": [
+    {
+      "resources": ["data/core-rankings.json"],
+      "matches": [
+        "https://scholar.google.com/*",
+        "https://scholar.google.co.uk/*",
+        "https://scholar.google.ca/*",
+        "https://scholar.google.com.au/*",
+        "https://scholar.google.de/*",
+        "https://scholar.google.fr/*",
+        "https://scholar.google.es/*",
+        "https://scholar.google.it/*",
+        "https://scholar.google.nl/*",
+        "https://scholar.google.co.jp/*",
+        "https://scholar.google.co.kr/*",
+        "https://scholar.google.co.in/*",
+        "https://scholar.google.com.br/*",
+        "https://scholar.google.ch/*",
+        "https://scholar.google.at/*",
+        "https://scholar.google.se/*",
+        "https://scholar.google.no/*",
+        "https://scholar.google.dk/*",
+        "https://scholar.google.fi/*",
+        "https://scholar.google.pl/*",
+        "https://scholar.google.pt/*",
+        "https://scholar.google.be/*",
+        "https://scholar.google.co.nz/*",
+        "https://scholar.google.com.sg/*",
+        "https://scholar.google.com.hk/*",
+        "https://scholar.google.co.il/*"
+      ]
+    }
+  ],
+
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}

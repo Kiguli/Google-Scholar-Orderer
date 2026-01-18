@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4285f4"/>
+      <stop offset="100%" style="stop-color:#1a73e8"/>
+    </linearGradient>
+    <linearGradient id="hatGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#34a853"/>
+      <stop offset="100%" style="stop-color:#1e8e3e"/>
+    </linearGradient>
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffc107"/>
+      <stop offset="100%" style="stop-color:#ff9800"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle with soft shadow effect -->
+  <circle cx="64" cy="64" r="58" fill="url(#bgGrad)"/>
+  <circle cx="64" cy="64" r="54" fill="none" stroke="white" stroke-width="2" opacity="0.2"/>
+
+  <!-- Cute scholar owl body -->
+  <ellipse cx="64" cy="75" rx="32" ry="28" fill="white"/>
+
+  <!-- Owl belly -->
+  <ellipse cx="64" cy="80" rx="22" ry="18" fill="#f0f0f0"/>
+
+  <!-- Owl eyes (big and cute) -->
+  <circle cx="52" cy="68" r="12" fill="white" stroke="#333" stroke-width="2"/>
+  <circle cx="76" cy="68" r="12" fill="white" stroke="#333" stroke-width="2"/>
+  <circle cx="54" cy="66" r="6" fill="#333"/>
+  <circle cx="78" cy="66" r="6" fill="#333"/>
+  <circle cx="56" cy="64" r="2" fill="white"/>
+  <circle cx="80" cy="64" r="2" fill="white"/>
+
+  <!-- Owl beak -->
+  <path d="M64 74 L60 80 L64 84 L68 80 Z" fill="#ff9800"/>
+
+  <!-- Graduation cap -->
+  <path d="M64 32 L28 48 L64 62 L100 48 Z" fill="url(#hatGrad)"/>
+  <rect x="58" y="28" width="12" height="6" rx="1" fill="url(#hatGrad)"/>
+
+  <!-- Cap tassel -->
+  <circle cx="28" cy="48" r="3" fill="#ffc107"/>
+  <path d="M28 51 Q26 58 24 65" stroke="#ffc107" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <circle cx="24" cy="65" r="4" fill="#ffc107"/>
+
+  <!-- Star badge (ranking indicator) -->
+  <g transform="translate(88, 88)">
+    <path d="M12 0 L14.5 9 L24 9 L16.5 14.5 L19 24 L12 18.5 L5 24 L7.5 14.5 L0 9 L9.5 9 Z"
+          fill="url(#starGrad)" transform="scale(0.8)"/>
+  </g>
+
+  <!-- Small A* text -->
+  <text x="96" y="104" font-family="Arial, sans-serif" font-size="8" font-weight="bold" fill="white" text-anchor="middle">A*</text>
+</svg>
