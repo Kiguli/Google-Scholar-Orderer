@@ -99,149 +99,129 @@
       .trim();
   }
 
-  function extractVenueFromMLA(mlaHtml) {
-    // In MLA format, the venue (journal/conference) is in italics (<i> tag)
-    // Example: Smith, John. "Paper title." <i>IEEE Transactions on Automatic Control</i> 42.3 (2017): 123-456.
-
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(mlaHtml, 'text/html');
-
-    // Find all italic elements
-    const italics = doc.querySelectorAll('i');
-    for (const italic of italics) {
-      const text = italic.textContent.trim();
-      // Skip if it's too short or looks like a title (titles are usually longer and in quotes before)
-      if (text.length > 2) {
-        return text;
-      }
-    }
-
-    return null;
-  }
-
-  async function fetchVenueFromCitePopup(citeLink) {
-    // Fetch the cite popup page and extract venue from MLA format
-    try {
-      const response = await fetch(citeLink, {
-        credentials: 'include'  // Include cookies for same-origin requests
-      });
-      const html = await response.text();
-
-      // Parse the HTML to find the MLA citation
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-
-      // The citation formats are in a table with id "gs_citt"
-      // Each row has the citation in different formats
-      // MLA is typically the first one
-      const citationTable = doc.querySelector('#gs_citt');
-      if (citationTable) {
-        const rows = citationTable.querySelectorAll('tr');
-        for (const row of rows) {
-          const cell = row.querySelector('td');
-          if (cell) {
-            // Check if this row contains an italic element (venue name)
-            const venue = extractVenueFromMLA(cell.innerHTML);
-            if (venue) {
-              console.log('[Scholar Orderer] Found venue from MLA:', venue);
-              return venue;
-            }
-          }
-        }
-      }
-
-      // Fallback: just look for any italic text in the popup
-      const venue = extractVenueFromMLA(html);
-      if (venue) {
-        console.log('[Scholar Orderer] Found venue from popup italics:', venue);
-        return venue;
-      }
-
-    } catch (error) {
-      console.log('[Scholar Orderer] Error fetching citation:', error);
-    }
-    return null;
-  }
-
-  function extractVenueFromAuthorLine(authorLineText) {
-    // Fallback: extract from author line if citation fetch fails
+  function extractVenueFromAuthorLine(authorLineText, debugIndex = null) {
+    // Extract venue from author line (no HTTP requests needed)
     // Google Scholar author line formats:
     // "Author1, Author2 - Journal Name, 2023 - publisher.com"
+    // "Author1, Author2 - Conference Name, 2023 - dl.acm.org"
 
-    const parts = authorLineText.split(' - ');
-    if (parts.length < 2) return null;
+    const debug = (msg) => {
+      if (debugIndex !== null) {
+        console.log(`[Scholar Orderer] Result ${debugIndex} extraction: ${msg}`);
+      }
+    };
 
-    const knownPublishers = ['springer', 'elsevier', 'wiley', 'acm', 'ieee', 'nature', 'mdpi', 'taylor & francis', 'oxford', 'cambridge', 'mit press', 'aaai'];
+    if (!authorLineText) {
+      debug('No author line text');
+      return null;
+    }
+
+    debug(`Raw input: "${authorLineText}"`);
+
+    // Debug: show character codes around dashes to understand the separator
+    const dashMatches = authorLineText.match(/.\s*[-–—]\s*./g);
+    if (dashMatches) {
+      debug(`Dash patterns found: ${JSON.stringify(dashMatches)}`);
+    }
+
+    // Split on various dash patterns that Google Scholar uses
+    // This handles: " - " (space-hyphen-space), " – " (en-dash), " — " (em-dash)
+    const parts = authorLineText.split(/\s+[-–—]\s+/);
+    debug(`Split into ${parts.length} parts: ${JSON.stringify(parts)}`);
+
+    if (parts.length < 2) {
+      debug('Not enough parts (need at least 2)');
+      return null;
+    }
+
+    // Known publishers that appear as standalone parts in author lines (not as part of venue names)
+    const knownPublishers = ['springer', 'elsevier', 'wiley', 'mdpi', 'taylor & francis', 'oxford', 'cambridge', 'mit press', 'sciencedirect', 'arxiv', 'ssrn', 'researchgate', 'academia'];
 
     for (let i = 1; i < parts.length; i++) {
       let part = parts[i].trim();
+      debug(`Checking part[${i}]: "${part}"`);
 
-      if (/^\d{4}$/.test(part)) continue;
+      // Skip year-only parts
+      if (/^\d{4}$/.test(part)) {
+        debug(`  -> Skipped: year-only`);
+        continue;
+      }
+      // Skip publisher URLs
       if (part.includes('.com') || part.includes('.org') || part.includes('.edu') ||
           part.includes('.net') || part.includes('.io') || part.includes('.gov') ||
-          part.includes('.ac.') || part.includes('.co.')) continue;
-      if (knownPublishers.some(pub => part.toLowerCase() === pub)) continue;
+          part.includes('.ac.') || part.includes('.co.')) {
+        debug(`  -> Skipped: contains URL domain`);
+        continue;
+      }
+      // Skip known publisher names
+      if (knownPublishers.some(pub => part.toLowerCase() === pub)) {
+        debug(`  -> Skipped: known publisher name`);
+        continue;
+      }
+
+      debug(`  -> Processing this part`);
+      const originalPart = part;
 
       // Clean up the venue part
-      part = part.replace(/\s*….*$/, '').trim();
+      // First remove leading ellipsis (truncated start)
       part = part.replace(/^…\s*/, '').trim();
-      part = part.replace(/,\s*\d{4}.*$/, '').trim();
-      part = part.replace(/\s+\d{4}$/, '').trim();
-      part = part.replace(/\s+\d+\s*\(\d+\).*$/, '').trim();
-      part = part.replace(/,?\s*\d+-\d+\s*$/, '').trim();
-      part = part.replace(/,\s*$/, '').trim();
+      if (part !== originalPart) debug(`  After leading ellipsis removal: "${part}"`);
 
-      if (part.length >= 3) return part;
-    }
-    return null;
-  }
+      // Remove trailing ellipsis with optional year: "… , 2004" or just "…"
+      let prev = part;
+      part = part.replace(/\s*…\s*(,\s*\d{4}.*)?$/, '').trim();
+      if (part !== prev) debug(`  After trailing ellipsis removal: "${part}"`);
 
-  function findCiteInfo(resultElement) {
-    // Google Scholar cite links use javascript:void(0) and trigger via onclick/data attributes
-    // We need to find the article ID to construct the citation URL
-    // The cite link has a data-aid attribute or we can find it from the result's data-cid/data-aid
+      prev = part;
+      part = part.replace(/,\s*\d{4}.*$/, '').trim();  // Remove ", 2023" and after
+      if (part !== prev) debug(`  After comma+year removal: "${part}"`);
 
-    // Try to get the article ID from the result element itself
-    let articleId = resultElement.getAttribute('data-cid') || resultElement.getAttribute('data-aid');
+      prev = part;
+      part = part.replace(/\s+\d{4}$/, '').trim();     // Remove trailing year
+      if (part !== prev) debug(`  After trailing year removal: "${part}"`);
 
-    // If not found, look in the cite link's data attributes
-    if (!articleId) {
-      const citeLink = resultElement.querySelector('a.gs_or_cit, a[onclick*="gs_ocit"]');
-      if (citeLink) {
-        // Try data-aid attribute
-        articleId = citeLink.getAttribute('data-aid');
+      prev = part;
+      part = part.replace(/\s+\d+\s*\(\d+\).*$/, '').trim();  // Remove volume/issue
+      if (part !== prev) debug(`  After volume/issue removal: "${part}"`);
 
-        // Try parsing from onclick handler: gs_ocit(event,'ARTICLE_ID')
-        if (!articleId) {
-          const onclick = citeLink.getAttribute('onclick') || '';
-          const match = onclick.match(/gs_ocit\s*\(\s*event\s*,\s*'([^']+)'/);
-          if (match) {
-            articleId = match[1];
-          }
-        }
+      prev = part;
+      part = part.replace(/,?\s*\d+-\d+\s*$/, '').trim();     // Remove page numbers
+      if (part !== prev) debug(`  After page numbers removal: "${part}"`);
+
+      prev = part;
+      part = part.replace(/,\s*$/, '').trim();  // Remove trailing comma
+      if (part !== prev) debug(`  After trailing comma removal: "${part}"`);
+
+      // Clean up common prefixes for better matching
+      prev = part;
+      part = part.replace(/^Proceedings of (the\s+)?/i, '').trim();
+      if (part !== prev) debug(`  After "Proceedings of" removal: "${part}"`);
+
+      // Remove organization prefixes ONLY when followed by ordinals (conference pattern)
+      prev = part;
+      part = part.replace(/^(ACM\/IEEE|IEEE\/ACM|ACM|IEEE)\s+\d+(st|nd|rd|th)\s+/i, '').trim();
+      if (part !== prev) debug(`  After org+ordinal removal: "${part}"`);
+
+      // Remove standalone ordinal numbers like "45th", "16th", "1st", "2nd", "3rd"
+      prev = part;
+      part = part.replace(/^\d+(st|nd|rd|th)\s+/i, '').trim();
+      if (part !== prev) debug(`  After numeric ordinal removal: "${part}"`);
+
+      // Remove written ordinals like "Thirty-First", "Twenty-Second", etc.
+      prev = part;
+      part = part.replace(/^(First|Second|Third|Fourth|Fifth|Sixth|Seventh|Eighth|Ninth|Tenth|Eleventh|Twelfth|Thirteenth|Fourteenth|Fifteenth|Sixteenth|Seventeenth|Eighteenth|Nineteenth|Twentieth|Twenty-First|Twenty-Second|Twenty-Third|Twenty-Fourth|Twenty-Fifth|Twenty-Sixth|Twenty-Seventh|Twenty-Eighth|Twenty-Ninth|Thirtieth|Thirty-First|Thirty-Second|Thirty-Third|Thirty-Fourth|Thirty-Fifth|Thirty-Sixth|Thirty-Seventh|Thirty-Eighth|Thirty-Ninth|Fortieth|Forty-First|Forty-Second|Forty-Third|Forty-Fourth|Forty-Fifth)\s+/i, '').trim();
+      if (part !== prev) debug(`  After written ordinal removal: "${part}"`);
+
+      debug(`  Final cleaned venue: "${part}" (length: ${part.length})`);
+
+      if (part.length >= 3) {
+        debug(`  -> RETURNING: "${part}"`);
+        return part;
+      } else {
+        debug(`  -> Too short (< 3 chars), checking next part`);
       }
     }
-
-    // Also try finding it in any link with the cite class
-    if (!articleId) {
-      const links = resultElement.querySelectorAll('.gs_fl a, .gs_flb a');
-      for (const link of links) {
-        const onclick = link.getAttribute('onclick') || '';
-        const match = onclick.match(/gs_ocit\s*\(\s*event\s*,\s*'([^']+)'/);
-        if (match) {
-          articleId = match[1];
-          break;
-        }
-      }
-    }
-
-    if (articleId) {
-      // Construct the citation popup URL
-      // Format: /scholar?q=info:ARTICLE_ID:scholar.google.com/&output=cite
-      const citeUrl = `${window.location.origin}/scholar?q=info:${articleId}:scholar.google.com/&output=cite&scirp=0&hl=en`;
-      return citeUrl;
-    }
-
+    debug('No valid venue found in any part');
     return null;
   }
 
@@ -427,7 +407,7 @@
     return container;
   }
 
-  async function injectBadges() {
+  function injectBadges() {
     if (!rankingsData) {
       console.log('[Scholar Orderer] Rankings data not loaded yet');
       return;
@@ -436,10 +416,10 @@
     const results = document.querySelectorAll(CONFIG.selectors.resultItem);
     console.log('[Scholar Orderer] Processing', results.length, 'results');
 
-    // Process results in parallel with a small delay to avoid overwhelming the server
-    const processResult = async (result, index) => {
+    // Process each result synchronously (no HTTP requests needed)
+    results.forEach((result, index) => {
       // Skip if already processed
-      if (result.querySelector('.gs-orderer-debug-venue')) return;
+      if (result.querySelector('.gs-orderer-badge-container')) return;
 
       // Skip books - title starts with [BOOK] or [Book]
       const titleElement = result.querySelector('.gs_rt');
@@ -457,39 +437,12 @@
         return;
       }
 
-      // Create a debug label (will update with venue info)
-      const debugLabel = document.createElement('span');
-      debugLabel.className = 'gs-orderer-debug-venue';
-      debugLabel.style.cssText = 'display: inline-block; margin-left: 8px; padding: 2px 6px; background: #ffeb3b; color: #000; font-size: 10px; border-radius: 3px; font-family: monospace;';
-      debugLabel.textContent = '[Loading...]';
-      authorLine.appendChild(debugLabel);
-
-      let venueName = null;
-
-      // Try to get venue from citation popup (MLA format has venue in italics)
-      const citeUrl = findCiteInfo(result);
-      if (citeUrl) {
-        console.log('[Scholar Orderer] Result', index, ': Constructed cite URL:', citeUrl);
-        venueName = await fetchVenueFromCitePopup(citeUrl);
-        if (venueName) {
-          console.log('[Scholar Orderer] Result', index, ': Got venue from citation:', venueName);
-        }
-      } else {
-        console.log('[Scholar Orderer] Result', index, ': Could not find article ID for citation');
-      }
-
-      // Fallback to author line parsing if citation fetch failed
-      if (!venueName) {
-        const authorLineText = authorLine.textContent;
-        venueName = extractVenueFromAuthorLine(authorLineText);
-        console.log('[Scholar Orderer] Result', index, ': Fallback to author line:', venueName);
-      }
-
-      // Update debug label
-      debugLabel.textContent = venueName ? `[Detected: "${venueName}"]` : '[No venue detected]';
+      // Extract venue from author line (no HTTP request needed)
+      const authorLineText = authorLine.textContent;
+      const venueName = extractVenueFromAuthorLine(authorLineText, index);
 
       if (!venueName) {
-        console.log('[Scholar Orderer] Result', index, ': Could not extract venue name');
+        // Debug logging already done in extractVenueFromAuthorLine
         return;
       }
 
@@ -502,17 +455,7 @@
       console.log('[Scholar Orderer] Result', index, ': Found ranking:', ranking.key, ranking.core || ranking.sjr);
       const badgeContainer = createBadgeContainer(ranking);
       authorLine.appendChild(badgeContainer);
-    };
-
-    // Process results with a small stagger to avoid rate limiting
-    for (let i = 0; i < results.length; i++) {
-      // Don't await each one - process in batches
-      processResult(results[i], i);
-      // Small delay between starting each request
-      if (i < results.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
-    }
+    });
   }
 
   // ============================================
