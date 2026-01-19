@@ -56,6 +56,31 @@
   let currentSort = 'default';
 
   // ============================================
+  // Inject CSS Styles
+  // ============================================
+
+  function injectStyles() {
+    if (document.getElementById('gs-orderer-styles')) return;
+
+    const style = document.createElement('style');
+    style.id = 'gs-orderer-styles';
+    style.textContent = `
+      .gs-orderer-fetch-btn:hover:not(:disabled) {
+        background: #1a73e8 !important;
+        color: white !important;
+      }
+      .gs-orderer-fetch-btn:disabled {
+        opacity: 0.6;
+        cursor: wait !important;
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  // Inject styles immediately
+  injectStyles();
+
+  // ============================================
   // Rankings Data Loader
   // ============================================
 
@@ -97,6 +122,53 @@
       .replace(/[^a-z0-9\s]/g, '')
       .replace(/\s+/g, ' ')
       .trim();
+  }
+
+  /**
+   * Find citation info URL for a result element
+   * Returns a URL that can be fetched to get the citation popup with full venue name
+   */
+  function findCiteInfo(resultElement) {
+    // Try to get the article ID from the result element itself
+    let articleId = resultElement.getAttribute('data-cid') || resultElement.getAttribute('data-aid');
+
+    // If not found, look in the cite link's data attributes
+    if (!articleId) {
+      const citeLink = resultElement.querySelector('a.gs_or_cit, a[onclick*="gs_ocit"]');
+      if (citeLink) {
+        articleId = citeLink.getAttribute('data-aid');
+
+        // Try parsing from onclick handler: gs_ocit(event,'ARTICLE_ID')
+        if (!articleId) {
+          const onclick = citeLink.getAttribute('onclick') || '';
+          const match = onclick.match(/gs_ocit\s*\(\s*event\s*,\s*'([^']+)'/);
+          if (match) {
+            articleId = match[1];
+          }
+        }
+      }
+    }
+
+    // Also try finding it in any link with gs_fl class
+    if (!articleId) {
+      const links = resultElement.querySelectorAll('.gs_fl a, .gs_flb a');
+      for (const link of links) {
+        const onclick = link.getAttribute('onclick') || '';
+        const match = onclick.match(/gs_ocit\s*\(\s*event\s*,\s*'([^']+)'/);
+        if (match) {
+          articleId = match[1];
+          break;
+        }
+      }
+    }
+
+    if (articleId) {
+      console.log('[Scholar Orderer] Found article ID:', articleId);
+      return `${window.location.origin}/scholar?q=info:${articleId}:scholar.google.com/&output=cite&scirp=0&hl=en`;
+    }
+
+    console.log('[Scholar Orderer] Could not find article ID for result');
+    return null;
   }
 
   function extractVenueFromAuthorLine(authorLineText, debugIndex = null) {
@@ -298,6 +370,65 @@
     return null;
   }
 
+  /**
+   * Find all venues in the database that start with the given truncated venue name
+   * Used to determine if a truncated venue has a unique match or multiple possibilities
+   */
+  function findPrefixMatches(truncatedVenue) {
+    if (!rankingsData || !truncatedVenue) return [];
+
+    const normalized = normalizeString(truncatedVenue);
+    // Need sufficient length for reliable prefix matching
+    if (normalized.length < 15) {
+      console.log('[Scholar Orderer] Prefix match skipped - venue too short:', normalized.length);
+      return [];
+    }
+
+    const matches = [];
+    const seenKeys = new Set();
+
+    // Check conferences
+    for (const [key, data] of Object.entries(rankingsData.conferences)) {
+      const fullNameNorm = normalizeString(data.fullName || '');
+      if (fullNameNorm.length >= normalized.length && fullNameNorm.startsWith(normalized)) {
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
+          matches.push({ key, ...data, type: 'conference' });
+        }
+      }
+    }
+
+    // Check journals
+    for (const [key, data] of Object.entries(rankingsData.journals)) {
+      const fullNameNorm = normalizeString(data.fullName || '');
+      if (fullNameNorm.length >= normalized.length && fullNameNorm.startsWith(normalized)) {
+        if (!seenKeys.has(key)) {
+          seenKeys.add(key);
+          matches.push({ key, ...data, type: 'journal' });
+        }
+      }
+    }
+
+    // Check aliases
+    if (rankingsData.aliases) {
+      for (const [alias, canonical] of Object.entries(rankingsData.aliases)) {
+        const aliasNorm = normalizeString(alias);
+        if (aliasNorm.length >= normalized.length && aliasNorm.startsWith(normalized)) {
+          if (!seenKeys.has(canonical)) {
+            const data = rankingsData.conferences[canonical] || rankingsData.journals[canonical];
+            if (data) {
+              seenKeys.add(canonical);
+              matches.push({ key: canonical, ...data });
+            }
+          }
+        }
+      }
+    }
+
+    console.log('[Scholar Orderer] Prefix matches for "' + truncatedVenue + '":', matches.length, matches.map(m => m.key));
+    return matches;
+  }
+
   // ============================================
   // Badge Creation
   // ============================================
@@ -407,6 +538,138 @@
     return container;
   }
 
+  // ============================================
+  // Lazy Fetch Button for Unmatched Venues
+  // ============================================
+
+  let lastFetchTime = 0;
+  const FETCH_COOLDOWN = 1000; // 1 second between fetches
+
+  function createFetchButton(result, authorLine, index) {
+    const button = document.createElement('button');
+    button.className = 'gs-orderer-fetch-btn';
+    button.innerHTML = '?';
+    button.title = 'Click to lookup venue ranking';
+    button.style.cssText = `
+      margin-left: 6px;
+      padding: 2px 6px;
+      font-size: 11px;
+      font-weight: bold;
+      background: #e8f0fe;
+      color: #1a73e8;
+      border: 1px solid #1a73e8;
+      border-radius: 4px;
+      cursor: pointer;
+      vertical-align: middle;
+    `;
+
+    button.addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      await handleFetchClick(button, result, authorLine, index);
+    });
+
+    return button;
+  }
+
+  async function handleFetchClick(button, result, authorLine, index) {
+    // Rate limiting
+    const now = Date.now();
+    if (now - lastFetchTime < FETCH_COOLDOWN) {
+      button.title = 'Please wait before clicking again';
+      return;
+    }
+    lastFetchTime = now;
+
+    // Show loading state
+    const originalContent = button.innerHTML;
+    button.innerHTML = '⏳';
+    button.disabled = true;
+    button.style.cursor = 'wait';
+
+    try {
+      // Use findCiteInfo to get the citation URL (extracts article ID properly)
+      const citeUrl = findCiteInfo(result);
+
+      if (!citeUrl) {
+        button.innerHTML = '✗';
+        button.title = 'Could not find article citation link';
+        button.disabled = false;
+        button.style.cursor = 'pointer';
+        return;
+      }
+
+      console.log('[Scholar Orderer] Fetching citation:', citeUrl);
+
+      // Fetch citation popup
+      const response = await fetch(citeUrl, { credentials: 'include' });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const html = await response.text();
+
+      // Parse MLA citation for venue (in italics)
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const italics = doc.querySelectorAll('#gs_citt i');
+
+      let venueName = null;
+      for (const italic of italics) {
+        const text = italic.textContent.trim();
+        if (text.length > 3) {
+          venueName = text;
+          break;
+        }
+      }
+
+      if (!venueName) {
+        button.innerHTML = '✗';
+        button.title = 'Could not extract venue from citation';
+        button.disabled = false;
+        button.style.cursor = 'pointer';
+        return;
+      }
+
+      console.log('[Scholar Orderer] Result', index, ': Fetched venue:', venueName);
+
+      // Try to find ranking
+      const ranking = findRanking(venueName);
+
+      // Remove the button
+      button.remove();
+
+      if (ranking) {
+        // Add badge
+        const badgeContainer = createBadgeContainer(ranking);
+        authorLine.appendChild(badgeContainer);
+        console.log('[Scholar Orderer] Result', index, ': Found ranking via fetch:', ranking.key);
+      } else {
+        // Show "not ranked" indicator
+        const notRanked = document.createElement('span');
+        notRanked.className = 'gs-orderer-not-ranked';
+        notRanked.textContent = 'Not ranked';
+        notRanked.title = `Venue: ${venueName}`;
+        notRanked.style.cssText = `
+          margin-left: 6px;
+          padding: 2px 6px;
+          font-size: 10px;
+          background: #f1f3f4;
+          color: #5f6368;
+          border-radius: 4px;
+        `;
+        authorLine.appendChild(notRanked);
+        console.log('[Scholar Orderer] Result', index, ': Venue not in database:', venueName);
+      }
+
+    } catch (error) {
+      console.error('[Scholar Orderer] Fetch error:', error);
+      button.innerHTML = '✗';
+      button.title = 'Network error - click to retry';
+      button.disabled = false;
+      button.style.cursor = 'pointer';
+    }
+  }
+
   function injectBadges() {
     if (!rankingsData) {
       console.log('[Scholar Orderer] Rankings data not loaded yet');
@@ -418,8 +681,10 @@
 
     // Process each result synchronously (no HTTP requests needed)
     results.forEach((result, index) => {
-      // Skip if already processed
+      // Skip if already processed (badge or fetch button or not-ranked)
       if (result.querySelector('.gs-orderer-badge-container')) return;
+      if (result.querySelector('.gs-orderer-fetch-btn')) return;
+      if (result.querySelector('.gs-orderer-not-ranked')) return;
 
       // Skip books - title starts with [BOOK] or [Book]
       const titleElement = result.querySelector('.gs_rt');
@@ -440,21 +705,62 @@
       // Extract venue from author line (no HTTP request needed)
       const authorLineText = authorLine.textContent;
       const venueName = extractVenueFromAuthorLine(authorLineText, index);
+      const hasTruncation = authorLineText.includes('…');
 
       if (!venueName) {
-        // Debug logging already done in extractVenueFromAuthorLine
+        // Could not extract venue - add fetch button to try citation lookup
+        console.log('[Scholar Orderer] Result', index, ': Could not extract venue, adding fetch button');
+        const fetchButton = createFetchButton(result, authorLine, index);
+        authorLine.appendChild(fetchButton);
         return;
       }
 
-      const ranking = findRanking(venueName);
-      if (!ranking) {
-        console.log('[Scholar Orderer] Result', index, ': No ranking found for venue');
+      // Try exact match first
+      const exactRanking = findRanking(venueName);
+
+      // Logic:
+      // 1. Exact match with NO truncation -> show badge (high confidence)
+      // 2. Exact match WITH truncation -> show badge (matched despite truncation)
+      // 3. No exact match but truncated -> try prefix matching
+      //    - Single prefix match -> show badge automatically
+      //    - Multiple or zero prefix matches -> show "?" button
+      // 4. No exact match and not truncated -> show "?" button (venue not in database)
+
+      if (exactRanking) {
+        // We have an exact match - show badge regardless of truncation
+        console.log('[Scholar Orderer] Result', index, ': Found exact ranking:', exactRanking.key, exactRanking.core || exactRanking.sjr);
+        const badgeContainer = createBadgeContainer(exactRanking);
+        authorLine.appendChild(badgeContainer);
         return;
       }
 
-      console.log('[Scholar Orderer] Result', index, ': Found ranking:', ranking.key, ranking.core || ranking.sjr);
-      const badgeContainer = createBadgeContainer(ranking);
-      authorLine.appendChild(badgeContainer);
+      // No exact match - check if venue is truncated
+      if (hasTruncation) {
+        // Try prefix matching for truncated venues
+        const prefixMatches = findPrefixMatches(venueName);
+
+        if (prefixMatches.length === 1) {
+          // Single unambiguous match - show badge automatically
+          console.log('[Scholar Orderer] Result', index, ': Single prefix match for truncated venue:', prefixMatches[0].key);
+          const badgeContainer = createBadgeContainer(prefixMatches[0]);
+          authorLine.appendChild(badgeContainer);
+          return;
+        } else if (prefixMatches.length > 1) {
+          // Multiple possible matches - need user to fetch full name
+          console.log('[Scholar Orderer] Result', index, ': Multiple prefix matches (' + prefixMatches.length + '), adding fetch button');
+        } else {
+          // No prefix matches found
+          console.log('[Scholar Orderer] Result', index, ': No prefix matches for truncated venue, adding fetch button');
+        }
+        // Fall through to add fetch button for truncated venues with no unique match
+      } else {
+        // Not truncated but no match - venue likely not in database
+        console.log('[Scholar Orderer] Result', index, ': No ranking found (not truncated), adding fetch button');
+      }
+
+      // Add fetch button for all remaining cases (no exact match, no unique prefix match)
+      const fetchButton = createFetchButton(result, authorLine, index);
+      authorLine.appendChild(fetchButton);
     });
   }
 
