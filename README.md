@@ -12,13 +12,15 @@ A browser extension that enhances Google Scholar with citation-based sorting, mu
   - **CORE Rankings** (A*, A, B, C) - Conference and journal quality rankings
   - **SJR Quartiles** (Q1-Q4) - Scimago Journal Rankings
   - **JCR Quartiles** (Q1-Q4) - Journal Citation Reports
+  - **ERA Rankings** (A, B, C) - Excellence in Research for Australia 2010
+  - **QUALIS Rankings** (A1, A2, B1-B5) - Brazilian research quality rankings 2012
   - **h5-index** - Google Scholar's 5-year h-index for venues
 - **Smart Venue Matching**: Automatically matches venues even when Google Scholar truncates long names
 - **Lazy Lookup Button**: Click the "?" button on unmatched venues to fetch the full venue name and find its ranking
 - **Rich Tooltips**: Hover over badges to see full venue names, all ranking metrics, and impact factors
 
 ### Author Profile Page
-- **Ranking Distribution Bar**: Visual breakdown of an author's publications by CORE ranking
+- **Ranking Distribution Bar**: Visual breakdown of an author's publications with toggle between CORE, SJR, ERA, and QUALIS ranking systems (auto-defaults to the most relevant system)
 - **Per-Publication Badges**: See ranking badges next to each publication in the author's list
 - **Statistics Summary**: Total publications count and percentage of ranked venues
 
@@ -41,6 +43,16 @@ A browser extension that enhances Google Scholar with citation-based sorting, mu
 - **Q2** - Medium orange
 - **Q3** - Light orange
 - **Q4** - Pale orange
+
+**ERA Rankings** (teal shades):
+- **A** - Dark teal
+- **B** - Medium teal
+- **C** - Light teal
+
+**QUALIS Rankings** (purple shades):
+- **A1** - Dark purple
+- **A2** - Medium purple
+- **B1-B5** - Progressively lighter purple
 
 ## Installation
 
@@ -124,12 +136,14 @@ The extension works on all major Google Scholar regional domains including:
 
 ## Data Sources
 
-The extension includes a local database of 2,470 conferences and 15,163 journals with rankings from multiple sources, covering computer science, engineering, medicine, physical sciences, mathematics, social sciences, arts & humanities, and more:
+The extension includes a local database of 3,603 conferences and 15,163 journals with rankings from multiple sources, covering computer science, engineering, medicine, physical sciences, mathematics, social sciences, arts & humanities, and more:
 
 - **CORE Rankings**: [CORE Conference Portal](https://www.core.edu.au/conference-portal) - Conference and journal quality rankings (CORE2023), evaluating computing research venues worldwide
 - **Wooldridge Conference List**: [Michael Wooldridge's Conference Rankings](https://www.cs.ox.ac.uk/people/michael.wooldridge/conferences.html) - Comprehensive conference ranking list from the University of Oxford
 - **SJR**: [Scimago Journal Rankings](https://www.scimagojr.com/) - Journal rankings based on citation data from Scopus
 - **JCR**: Journal Citation Reports - Impact factors and quartile rankings
+- **ERA 2010**: [Conference Ranks](http://www.conferenceranks.com/) - Excellence in Research for Australia conference rankings
+- **QUALIS 2012**: [Conference Ranks](http://www.conferenceranks.com/) - Brazilian CAPES/QUALIS conference quality rankings
 - **h5-index**: Google Scholar Metrics - 5-year h-index for academic venues
 
 ## Contributing

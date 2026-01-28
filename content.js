@@ -44,6 +44,22 @@
       'Q2': { color: '#fb8c00', textColor: '#ffffff' },
       'Q3': { color: '#ffb74d', textColor: '#212529' },
       'Q4': { color: '#ffe0b2', textColor: '#212529' }
+    },
+    // ERA 2010 ranking badge colors (teal tones)
+    eraBadges: {
+      'A': { color: '#00695c', textColor: '#ffffff' },
+      'B': { color: '#26a69a', textColor: '#ffffff' },
+      'C': { color: '#80cbc4', textColor: '#212529' }
+    },
+    // QUALIS 2012 ranking badge colors (purple tones)
+    qualisBadges: {
+      'A1': { color: '#4a148c', textColor: '#ffffff' },
+      'A2': { color: '#7b1fa2', textColor: '#ffffff' },
+      'B1': { color: '#ab47bc', textColor: '#ffffff' },
+      'B2': { color: '#ce93d8', textColor: '#212529' },
+      'B3': { color: '#e1bee7', textColor: '#212529' },
+      'B4': { color: '#f3e5f5', textColor: '#212529' },
+      'B5': { color: '#f8f0fa', textColor: '#212529' }
     }
   };
 
@@ -497,11 +513,39 @@
       }
     }
 
+    // Create ERA badge for conferences
+    if (ranking.era) {
+      const eraConfig = CONFIG.eraBadges[ranking.era];
+      if (eraConfig) {
+        const eraBadge = createBadgeElement(
+          `ERA ${ranking.era}`,
+          eraConfig.color,
+          eraConfig.textColor,
+          'gs-orderer-badge-era'
+        );
+        container.appendChild(eraBadge);
+      }
+    }
+
+    // Create QUALIS badge for conferences
+    if (ranking.qualis) {
+      const qualisConfig = CONFIG.qualisBadges[ranking.qualis];
+      if (qualisConfig) {
+        const qualisBadge = createBadgeElement(
+          `QU ${ranking.qualis}`,
+          qualisConfig.color,
+          qualisConfig.textColor,
+          'gs-orderer-badge-qualis'
+        );
+        container.appendChild(qualisBadge);
+      }
+    }
+
     // Create h5-index badge
     if (ranking.h5) {
       const h5Badge = createBadgeElement(
         `h5: ${ranking.h5}`,
-        '#7b1fa2',
+        '#555555',
         '#ffffff',
         'gs-orderer-badge-h5'
       );
@@ -528,6 +572,14 @@
 
     if (ranking.jcr) {
       tooltipContent += `<div class="gs-orderer-tooltip-row"><span class="gs-orderer-tooltip-label">JCR:</span> <span class="gs-orderer-tooltip-value">${ranking.jcr}</span></div>`;
+    }
+
+    if (ranking.era) {
+      tooltipContent += `<div class="gs-orderer-tooltip-row"><span class="gs-orderer-tooltip-label">ERA:</span> <span class="gs-orderer-tooltip-value">${ranking.era}</span></div>`;
+    }
+
+    if (ranking.qualis) {
+      tooltipContent += `<div class="gs-orderer-tooltip-row"><span class="gs-orderer-tooltip-label">QUALIS:</span> <span class="gs-orderer-tooltip-value">${ranking.qualis}</span></div>`;
     }
 
     if (ranking.if) {
@@ -814,15 +866,21 @@
     const results = document.querySelectorAll(CONFIG.selectors.profileResultItem);
     const core = { 'A*': 0, 'A': 0, 'B': 0, 'C': 0, 'Unranked': 0, total: 0 };
     const sjr = { 'Q1': 0, 'Q2': 0, 'Q3': 0, 'Q4': 0, 'Unranked': 0, total: 0 };
+    const era = { 'A': 0, 'B': 0, 'C': 0, 'Unranked': 0, total: 0 };
+    const qualis = { 'A1': 0, 'A2': 0, 'B1': 0, 'B2': 0, 'B3': 0, 'B4': 0, 'B5': 0, 'Unranked': 0, total: 0 };
 
     results.forEach((result) => {
       core.total++;
       sjr.total++;
+      era.total++;
+      qualis.total++;
 
       const venueName = extractVenueNameFromProfileRow(result);
       if (!venueName) {
         core['Unranked']++;
         sjr['Unranked']++;
+        era['Unranked']++;
+        qualis['Unranked']++;
         return;
       }
 
@@ -839,9 +897,21 @@
       } else {
         sjr['Unranked']++;
       }
+
+      if (ranking && ranking.era) {
+        era[ranking.era]++;
+      } else {
+        era['Unranked']++;
+      }
+
+      if (ranking && ranking.qualis) {
+        qualis[ranking.qualis]++;
+      } else {
+        qualis['Unranked']++;
+      }
     });
 
-    return { core, sjr };
+    return { core, sjr, era, qualis };
   }
 
   function createRankingDistributionBar() {
@@ -873,15 +943,39 @@
         { key: 'Q3', color: '#85c1e9', textColor: '#212529' },
         { key: 'Q4', color: '#d4e6f1', textColor: '#212529' },
         { key: 'Unranked', color: '#e0e0e0', textColor: '#757575' }
+      ],
+      era: [
+        { key: 'A', color: '#00695c', textColor: '#ffffff' },
+        { key: 'B', color: '#26a69a', textColor: '#ffffff' },
+        { key: 'C', color: '#80cbc4', textColor: '#212529' },
+        { key: 'Unranked', color: '#e0e0e0', textColor: '#757575' }
+      ],
+      qualis: [
+        { key: 'A1', color: '#4a148c', textColor: '#ffffff' },
+        { key: 'A2', color: '#7b1fa2', textColor: '#ffffff' },
+        { key: 'B1', color: '#ab47bc', textColor: '#ffffff' },
+        { key: 'B2', color: '#ce93d8', textColor: '#212529' },
+        { key: 'B3', color: '#e1bee7', textColor: '#212529' },
+        { key: 'B4', color: '#f3e5f5', textColor: '#212529' },
+        { key: 'B5', color: '#f8f0fa', textColor: '#212529' },
+        { key: 'Unranked', color: '#e0e0e0', textColor: '#757575' }
       ]
     };
 
-    const titles = { core: 'CORE Ranking Distribution', sjr: 'SJR Quartile Distribution' };
+    const titles = {
+      core: 'CORE Ranking Distribution',
+      sjr: 'SJR Quartile Distribution',
+      era: 'ERA Ranking Distribution',
+      qualis: 'QUALIS Ranking Distribution'
+    };
 
     // Determine default mode: whichever has more ranked publications
-    const coreRanked = distributions.core.total - distributions.core['Unranked'];
-    const sjrRanked = distributions.sjr.total - distributions.sjr['Unranked'];
-    let currentMode = sjrRanked > coreRanked ? 'sjr' : 'core';
+    const modes = ['core', 'sjr', 'era', 'qualis'];
+    const rankedCounts = {};
+    modes.forEach(m => {
+      rankedCounts[m] = distributions[m].total - distributions[m]['Unranked'];
+    });
+    let currentMode = modes.reduce((best, m) => rankedCounts[m] > rankedCounts[best] ? m : best, 'core');
 
     // Create container
     const container = document.createElement('div');
@@ -919,10 +1013,6 @@
       overflow: hidden;
     `;
 
-    const coreBtn = document.createElement('button');
-    coreBtn.type = 'button';
-    const sjrBtn = document.createElement('button');
-    sjrBtn.type = 'button';
     const btnBaseStyle = `
       padding: 2px 10px;
       font-size: 11px;
@@ -932,11 +1022,14 @@
       transition: background-color 0.2s, color 0.2s;
     `;
 
-    coreBtn.textContent = 'CORE';
-    sjrBtn.textContent = 'SJR';
-
-    toggleContainer.appendChild(coreBtn);
-    toggleContainer.appendChild(sjrBtn);
+    const buttons = {};
+    ['CORE', 'SJR', 'ERA', 'QUALIS'].forEach(label => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = label;
+      buttons[label.toLowerCase()] = btn;
+      toggleContainer.appendChild(btn);
+    });
     headerRow.appendChild(title);
     headerRow.appendChild(toggleContainer);
     container.appendChild(headerRow);
@@ -986,8 +1079,9 @@
       // Update toggle button styles
       const activeStyle = btnBaseStyle + 'background-color: #1a73e8; color: #ffffff;';
       const inactiveStyle = btnBaseStyle + 'background-color: #ffffff; color: #5f6368;';
-      coreBtn.style.cssText = mode === 'core' ? activeStyle : inactiveStyle;
-      sjrBtn.style.cssText = mode === 'sjr' ? activeStyle : inactiveStyle;
+      Object.keys(buttons).forEach(k => {
+        buttons[k].style.cssText = k === mode ? activeStyle : inactiveStyle;
+      });
 
       // Update bar segments
       barContainer.innerHTML = '';
@@ -1048,8 +1142,9 @@
     }
 
     // Wire up toggle buttons
-    coreBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); renderBar('core'); });
-    sjrBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); renderBar('sjr'); });
+    Object.keys(buttons).forEach(mode => {
+      buttons[mode].addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); renderBar(mode); });
+    });
 
     // Initial render
     renderBar(currentMode);
