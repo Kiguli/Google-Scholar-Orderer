@@ -124,7 +124,10 @@ The extension works on all major Google Scholar regional domains including:
 
 ## Data Sources
 
-- **CORE Rankings**: [CORE Conference Portal](https://www.core.edu.au/conference-portal) - Evaluates computing research venues worldwide
+The extension includes a local database of 2,470 conferences and 15,163 journals with rankings from multiple sources, covering computer science, engineering, medicine, physical sciences, mathematics, social sciences, arts & humanities, and more:
+
+- **CORE Rankings**: [CORE Conference Portal](https://www.core.edu.au/conference-portal) - Conference and journal quality rankings (CORE2023), evaluating computing research venues worldwide
+- **Wooldridge Conference List**: [Michael Wooldridge's Conference Rankings](https://www.cs.ox.ac.uk/people/michael.wooldridge/conferences.html) - Comprehensive conference ranking list from the University of Oxford
 - **SJR**: [Scimago Journal Rankings](https://www.scimagojr.com/) - Journal rankings based on citation data from Scopus
 - **JCR**: Journal Citation Reports - Impact factors and quartile rankings
 - **h5-index**: Google Scholar Metrics - 5-year h-index for academic venues
