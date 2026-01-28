@@ -785,7 +785,10 @@
 
     // Clean up venue name
     venueName = venueName.replace(/,?\s*\d{4}\s*$/, '').trim();
-    venueName = venueName.replace(/\s*\d+\s*\([^)]*\)\s*$/, '').trim();
+    venueName = venueName.replace(/\s*\d+\s*\([^)]*\),?\s*\d[\d\s,-]*$/, '').trim();  // Strip "65 (3), 1234-1240"
+    venueName = venueName.replace(/\s*\d+\s*\([^)]*\)\s*$/, '').trim();  // Strip "65 (3)"
+    venueName = venueName.replace(/,?\s*\d+\s*,\s*\d[\d\s,-]*$/, '').trim();  // Strip "72, 166-176"
+    venueName = venueName.replace(/\s+\d+\s*$/, '').trim();  // Strip trailing standalone volume number
     venueName = venueName.replace(/,\s*$/, '').trim();
     venueName = venueName.replace(/^Proceedings of the\s*/i, '').trim();
     venueName = venueName.replace(/^Proceedings of\s*/i, '').trim();
