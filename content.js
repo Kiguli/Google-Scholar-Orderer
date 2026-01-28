@@ -909,7 +909,9 @@
     `;
 
     const coreBtn = document.createElement('button');
+    coreBtn.type = 'button';
     const sjrBtn = document.createElement('button');
+    sjrBtn.type = 'button';
     const btnBaseStyle = `
       padding: 2px 10px;
       font-size: 11px;
@@ -1035,8 +1037,8 @@
     }
 
     // Wire up toggle buttons
-    coreBtn.addEventListener('click', () => renderBar('core'));
-    sjrBtn.addEventListener('click', () => renderBar('sjr'));
+    coreBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); renderBar('core'); });
+    sjrBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); renderBar('sjr'); });
 
     // Initial render
     renderBar(currentMode);
