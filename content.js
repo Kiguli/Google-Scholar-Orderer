@@ -801,33 +801,36 @@
 
   function calculateRankingDistribution() {
     const results = document.querySelectorAll(CONFIG.selectors.profileResultItem);
-    const distribution = {
-      'A*': 0,
-      'A': 0,
-      'B': 0,
-      'C': 0,
-      'Unranked': 0,
-      'total': 0
-    };
+    const core = { 'A*': 0, 'A': 0, 'B': 0, 'C': 0, 'Unranked': 0, total: 0 };
+    const sjr = { 'Q1': 0, 'Q2': 0, 'Q3': 0, 'Q4': 0, 'Unranked': 0, total: 0 };
 
     results.forEach((result) => {
-      distribution.total++;
+      core.total++;
+      sjr.total++;
 
       const venueName = extractVenueNameFromProfileRow(result);
       if (!venueName) {
-        distribution['Unranked']++;
+        core['Unranked']++;
+        sjr['Unranked']++;
         return;
       }
 
       const ranking = findRanking(venueName);
+
       if (ranking && ranking.core) {
-        distribution[ranking.core]++;
+        core[ranking.core]++;
       } else {
-        distribution['Unranked']++;
+        core['Unranked']++;
+      }
+
+      if (ranking && ranking.sjr) {
+        sjr[ranking.sjr]++;
+      } else {
+        sjr['Unranked']++;
       }
     });
 
-    return distribution;
+    return { core, sjr };
   }
 
   function createRankingDistributionBar() {
@@ -837,12 +840,37 @@
       existingBar.remove();
     }
 
-    const distribution = calculateRankingDistribution();
+    const distributions = calculateRankingDistribution();
 
-    if (distribution.total === 0) {
+    if (distributions.core.total === 0) {
       console.log('[Scholar Orderer] No results to show distribution for');
       return;
     }
+
+    // Rank definitions for each mode
+    const rankDefs = {
+      core: [
+        { key: 'A*', color: '#1e7e34', textColor: '#ffffff' },
+        { key: 'A', color: '#28a745', textColor: '#ffffff' },
+        { key: 'B', color: '#ffc107', textColor: '#212529' },
+        { key: 'C', color: '#6c757d', textColor: '#ffffff' },
+        { key: 'Unranked', color: '#e0e0e0', textColor: '#757575' }
+      ],
+      sjr: [
+        { key: 'Q1', color: '#1a5276', textColor: '#ffffff' },
+        { key: 'Q2', color: '#2e86c1', textColor: '#ffffff' },
+        { key: 'Q3', color: '#85c1e9', textColor: '#212529' },
+        { key: 'Q4', color: '#d4e6f1', textColor: '#212529' },
+        { key: 'Unranked', color: '#e0e0e0', textColor: '#757575' }
+      ]
+    };
+
+    const titles = { core: 'CORE Ranking Distribution', sjr: 'SJR Quartile Distribution' };
+
+    // Determine default mode: whichever has more ranked publications
+    const coreRanked = distributions.core.total - distributions.core['Unranked'];
+    const sjrRanked = distributions.sjr.total - distributions.sjr['Unranked'];
+    let currentMode = sjrRanked > coreRanked ? 'sjr' : 'core';
 
     // Create container
     const container = document.createElement('div');
@@ -856,18 +884,51 @@
       font-family: Arial, sans-serif;
     `;
 
-    // Create title
+    // Create header row with title and toggle
+    const headerRow = document.createElement('div');
+    headerRow.style.cssText = `
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    `;
+
     const title = document.createElement('div');
     title.style.cssText = `
       font-size: 13px;
       font-weight: 500;
       color: #5f6368;
-      margin-bottom: 8px;
     `;
-    title.textContent = 'CORE Ranking Distribution';
-    container.appendChild(title);
 
-    // Create the stacked bar
+    const toggleContainer = document.createElement('div');
+    toggleContainer.style.cssText = `
+      display: flex;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      overflow: hidden;
+    `;
+
+    const coreBtn = document.createElement('button');
+    const sjrBtn = document.createElement('button');
+    const btnBaseStyle = `
+      padding: 2px 10px;
+      font-size: 11px;
+      font-weight: 600;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.2s, color 0.2s;
+    `;
+
+    coreBtn.textContent = 'CORE';
+    sjrBtn.textContent = 'SJR';
+
+    toggleContainer.appendChild(coreBtn);
+    toggleContainer.appendChild(sjrBtn);
+    headerRow.appendChild(title);
+    headerRow.appendChild(toggleContainer);
+    container.appendChild(headerRow);
+
+    // Create bar, legend, summary containers
     const barContainer = document.createElement('div');
     barContainer.style.cssText = `
       display: flex;
@@ -877,55 +938,8 @@
       overflow: hidden;
       box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
     `;
-
-    // Calculate ranked total (excluding unranked)
-    const rankedTotal = distribution['A*'] + distribution['A'] + distribution['B'] + distribution['C'];
-
-    // Define colors and order
-    const ranks = [
-      { key: 'A*', color: '#1e7e34', textColor: '#ffffff' },
-      { key: 'A', color: '#28a745', textColor: '#ffffff' },
-      { key: 'B', color: '#ffc107', textColor: '#212529' },
-      { key: 'C', color: '#6c757d', textColor: '#ffffff' },
-      { key: 'Unranked', color: '#e0e0e0', textColor: '#757575' }
-    ];
-
-    ranks.forEach(rank => {
-      const count = distribution[rank.key];
-      if (count === 0) return;
-
-      const percentage = (count / distribution.total) * 100;
-
-      const segment = document.createElement('div');
-      segment.style.cssText = `
-        width: ${percentage}%;
-        height: 100%;
-        background-color: ${rank.color};
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: 600;
-        color: ${rank.textColor};
-        min-width: ${percentage >= 8 ? '0' : '0'}px;
-        overflow: hidden;
-        transition: opacity 0.2s;
-        cursor: default;
-      `;
-
-      // Only show label if segment is wide enough
-      if (percentage >= 8) {
-        segment.textContent = `${rank.key}`;
-      }
-
-      segment.title = `${rank.key}: ${count} (${percentage.toFixed(1)}%)`;
-
-      barContainer.appendChild(segment);
-    });
-
     container.appendChild(barContainer);
 
-    // Create legend with counts
     const legend = document.createElement('div');
     legend.style.cssText = `
       display: flex;
@@ -934,39 +948,8 @@
       margin-top: 10px;
       font-size: 12px;
     `;
-
-    ranks.forEach(rank => {
-      const count = distribution[rank.key];
-      const percentage = distribution.total > 0 ? (count / distribution.total) * 100 : 0;
-
-      const item = document.createElement('div');
-      item.style.cssText = `
-        display: flex;
-        align-items: center;
-        gap: 4px;
-      `;
-
-      const colorBox = document.createElement('span');
-      colorBox.style.cssText = `
-        width: 12px;
-        height: 12px;
-        border-radius: 2px;
-        background-color: ${rank.color};
-        flex-shrink: 0;
-      `;
-
-      const label = document.createElement('span');
-      label.style.cssText = `color: #5f6368;`;
-      label.textContent = `${rank.key}: ${count} (${percentage.toFixed(1)}%)`;
-
-      item.appendChild(colorBox);
-      item.appendChild(label);
-      legend.appendChild(item);
-    });
-
     container.appendChild(legend);
 
-    // Add summary stats
     const summary = document.createElement('div');
     summary.style.cssText = `
       margin-top: 10px;
@@ -975,23 +958,99 @@
       font-size: 12px;
       color: #5f6368;
     `;
-
-    const rankedPercentage = distribution.total > 0 ? (rankedTotal / distribution.total) * 100 : 0;
-    summary.textContent = `Total: ${distribution.total} publications | Ranked: ${rankedTotal} (${rankedPercentage.toFixed(1)}%)`;
-
     container.appendChild(summary);
+
+    function renderBar(mode) {
+      currentMode = mode;
+      const dist = distributions[mode];
+      const ranks = rankDefs[mode];
+      const rankedKeys = ranks.filter(r => r.key !== 'Unranked').map(r => r.key);
+      const rankedTotal = rankedKeys.reduce((sum, k) => sum + (dist[k] || 0), 0);
+
+      // Update title
+      title.textContent = titles[mode];
+
+      // Update toggle button styles
+      const activeStyle = btnBaseStyle + 'background-color: #1a73e8; color: #ffffff;';
+      const inactiveStyle = btnBaseStyle + 'background-color: #ffffff; color: #5f6368;';
+      coreBtn.style.cssText = mode === 'core' ? activeStyle : inactiveStyle;
+      sjrBtn.style.cssText = mode === 'sjr' ? activeStyle : inactiveStyle;
+
+      // Update bar segments
+      barContainer.innerHTML = '';
+      ranks.forEach(rank => {
+        const count = dist[rank.key];
+        if (count === 0) return;
+        const percentage = (count / dist.total) * 100;
+
+        const segment = document.createElement('div');
+        segment.style.cssText = `
+          width: ${percentage}%;
+          height: 100%;
+          background-color: ${rank.color};
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 11px;
+          font-weight: 600;
+          color: ${rank.textColor};
+          overflow: hidden;
+          transition: opacity 0.2s;
+          cursor: default;
+        `;
+        if (percentage >= 8) {
+          segment.textContent = rank.key;
+        }
+        segment.title = `${rank.key}: ${count} (${percentage.toFixed(1)}%)`;
+        barContainer.appendChild(segment);
+      });
+
+      // Update legend
+      legend.innerHTML = '';
+      ranks.forEach(rank => {
+        const count = dist[rank.key];
+        const percentage = dist.total > 0 ? (count / dist.total) * 100 : 0;
+
+        const item = document.createElement('div');
+        item.style.cssText = 'display: flex; align-items: center; gap: 4px;';
+
+        const colorBox = document.createElement('span');
+        colorBox.style.cssText = `
+          width: 12px; height: 12px; border-radius: 2px;
+          background-color: ${rank.color}; flex-shrink: 0;
+        `;
+
+        const label = document.createElement('span');
+        label.style.cssText = 'color: #5f6368;';
+        label.textContent = `${rank.key}: ${count} (${percentage.toFixed(1)}%)`;
+
+        item.appendChild(colorBox);
+        item.appendChild(label);
+        legend.appendChild(item);
+      });
+
+      // Update summary
+      const rankedPercentage = dist.total > 0 ? (rankedTotal / dist.total) * 100 : 0;
+      summary.textContent = `Total: ${dist.total} publications | Ranked: ${rankedTotal} (${rankedPercentage.toFixed(1)}%)`;
+    }
+
+    // Wire up toggle buttons
+    coreBtn.addEventListener('click', () => renderBar('core'));
+    sjrBtn.addEventListener('click', () => renderBar('sjr'));
+
+    // Initial render
+    renderBar(currentMode);
 
     // Insert before the publications table
     const profileTable = document.querySelector('#gsc_a_t');
     if (profileTable) {
       profileTable.parentNode.insertBefore(container, profileTable);
-      console.log('[Scholar Orderer] Ranking distribution bar inserted');
+      console.log('[Scholar Orderer] Ranking distribution bar inserted (default: ' + currentMode + ')');
     } else {
-      // Fallback: insert before the profile container
       const profileContainer = document.querySelector(CONFIG.selectors.profileContainer);
       if (profileContainer) {
         profileContainer.parentNode.insertBefore(container, profileContainer);
-        console.log('[Scholar Orderer] Ranking distribution bar inserted (fallback)');
+        console.log('[Scholar Orderer] Ranking distribution bar inserted (fallback, default: ' + currentMode + ')');
       }
     }
   }
