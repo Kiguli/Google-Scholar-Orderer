@@ -257,8 +257,16 @@
       if (part !== prev) debug(`  After volume/issue removal: "${part}"`);
 
       prev = part;
+      part = part.replace(/,?\s*\d+\s*,\s*\d[\d\s,-]*$/, '').trim();  // Remove "72, 166-176" (volume, pages)
+      if (part !== prev) debug(`  After volume+pages removal: "${part}"`);
+
+      prev = part;
       part = part.replace(/,?\s*\d+-\d+\s*$/, '').trim();     // Remove page numbers
       if (part !== prev) debug(`  After page numbers removal: "${part}"`);
+
+      prev = part;
+      part = part.replace(/\s+\d+\s*$/, '').trim();  // Remove trailing standalone volume number
+      if (part !== prev) debug(`  After trailing volume removal: "${part}"`);
 
       prev = part;
       part = part.replace(/,\s*$/, '').trim();  // Remove trailing comma
