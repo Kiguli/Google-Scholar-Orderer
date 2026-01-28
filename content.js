@@ -309,9 +309,9 @@
     // If exactMatch is true, require exact match only
     // Supports bidirectional matching for truncated venue names
     function isFullNameMatch(detected, target, exactMatch = false) {
-      if (!target || target.length < 10) return false;  // Skip short names
+      if (!target) return false;
       if (detected === target) return true;
-      if (exactMatch) return false;  // For exact match entries, don't allow substring
+      if (exactMatch || target.length < 10) return false;  // Short or exact-match names require exact match only
 
       // Standard check: detected contains target (detected is longer)
       if (detected.includes(target)) return true;
