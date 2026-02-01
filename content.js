@@ -273,11 +273,11 @@
       if (part !== prev) debug(`  After volume/issue removal: "${part}"`);
 
       prev = part;
-      part = part.replace(/,?\s*\d+\s*,\s*\d[\d\s,-]*$/, '').trim();  // Remove "72, 166-176" (volume, pages)
+      part = part.replace(/,?\s*\d+\s*,\s*\d[\d\s,\-–—]*$/, '').trim();  // Remove "72, 166-176" (volume, pages)
       if (part !== prev) debug(`  After volume+pages removal: "${part}"`);
 
       prev = part;
-      part = part.replace(/,?\s*\d+-\d+\s*$/, '').trim();     // Remove page numbers
+      part = part.replace(/,?\s*\d+[\-–—]\d+\s*$/, '').trim();     // Remove page numbers
       if (part !== prev) debug(`  After page numbers removal: "${part}"`);
 
       prev = part;
@@ -293,20 +293,35 @@
       part = part.replace(/^Proceedings of (the\s+)?/i, '').trim();
       if (part !== prev) debug(`  After "Proceedings of" removal: "${part}"`);
 
-      // Remove organization prefixes ONLY when followed by ordinals (conference pattern)
+      // Strip leading year (e.g. "2023 IEEE 47th Annual ...")
       prev = part;
-      part = part.replace(/^(ACM\/IEEE|IEEE\/ACM|ACM|IEEE)\s+\d+(st|nd|rd|th)\s+/i, '').trim();
-      if (part !== prev) debug(`  After org+ordinal removal: "${part}"`);
+      part = part.replace(/^\d{4}\s+/, '').trim();
+      if (part !== prev) debug(`  After leading year removal: "${part}"`);
+
+      // Remove organization prefixes ONLY when followed by ordinals or conference keywords
+      prev = part;
+      part = part.replace(/^(ACM\/IEEE|IEEE\/ACM|ACM|IEEE)\s+(?=\d|\d*(st|nd|rd|th)\s|International\s|Annual\s|Conference\s|Workshop\s|Symposium\s)/i, '').trim();
+      if (part !== prev) debug(`  After org+keyword removal: "${part}"`);
 
       // Remove standalone ordinal numbers like "45th", "16th", "1st", "2nd", "3rd"
       prev = part;
       part = part.replace(/^\d+(st|nd|rd|th)\s+/i, '').trim();
       if (part !== prev) debug(`  After numeric ordinal removal: "${part}"`);
 
+      // Remove "Annual" after ordinal stripping (e.g. "47th Annual ..." -> "Annual ..." -> "...")
+      prev = part;
+      part = part.replace(/^Annual\s+/i, '').trim();
+      if (part !== prev) debug(`  After "Annual" removal: "${part}"`);
+
       // Remove written ordinals like "Thirty-First", "Twenty-Second", etc.
       prev = part;
       part = part.replace(/^(First|Second|Third|Fourth|Fifth|Sixth|Seventh|Eighth|Ninth|Tenth|Eleventh|Twelfth|Thirteenth|Fourteenth|Fifteenth|Sixteenth|Seventeenth|Eighteenth|Nineteenth|Twentieth|Twenty-First|Twenty-Second|Twenty-Third|Twenty-Fourth|Twenty-Fifth|Twenty-Sixth|Twenty-Seventh|Twenty-Eighth|Twenty-Ninth|Thirtieth|Thirty-First|Thirty-Second|Thirty-Third|Thirty-Fourth|Thirty-Fifth|Thirty-Sixth|Thirty-Seventh|Thirty-Eighth|Thirty-Ninth|Fortieth|Forty-First|Forty-Second|Forty-Third|Forty-Fourth|Forty-Fifth)\s+/i, '').trim();
       if (part !== prev) debug(`  After written ordinal removal: "${part}"`);
+
+      // Strip trailing parenthetical acronym e.g. "(COMPSAC)"
+      prev = part;
+      part = part.replace(/\s*\([^)]+\)\s*$/, '').trim();
+      if (part !== prev) debug(`  After trailing acronym removal: "${part}"`);
 
       debug(`  Final cleaned venue: "${part}" (length: ${part.length})`);
 
@@ -356,7 +371,10 @@
       for (const [alias, canonical] of Object.entries(rankingsData.aliases)) {
         const aliasNorm = normalizeString(alias);
         // Only match if alias is long enough (full name, not acronym)
-        if (aliasNorm.length >= 10 && isFullNameMatch(normalized, aliasNorm)) {
+        // Respect exactMatch flag from the target entry
+        const targetData = rankingsData.conferences[canonical] || rankingsData.journals[canonical];
+        const exact = targetData ? targetData.exactMatch : false;
+        if (aliasNorm.length >= 10 && isFullNameMatch(normalized, aliasNorm, exact)) {
           // Found alias, look up the canonical name
           if (rankingsData.conferences[canonical]) {
             console.log('[Scholar Orderer] Matched via alias:', alias, '->', canonical);
@@ -843,19 +861,25 @@
 
     let venueName = venueLine.textContent.trim();
 
-    // Clean up venue name
-    venueName = venueName.replace(/,?\s*\d{4}\s*$/, '').trim();
-    venueName = venueName.replace(/\s*\d+\s*\([^)]*\),?\s*\d[\d\s,-]*$/, '').trim();  // Strip "65 (3), 1234-1240"
-    venueName = venueName.replace(/\s*\d+\s*\([^)]*\)\s*$/, '').trim();  // Strip "65 (3)"
-    venueName = venueName.replace(/,?\s*\d+\s*,\s*\d[\d\s,-]*$/, '').trim();  // Strip "72, 166-176"
+    // Clean up venue name — order matters: strip page ranges before years
+    venueName = venueName.replace(/\s*\d+\s*\(\d[^)]*\),?\s*\d[\d\s,\-–—]*$/, '').trim();  // Strip "65 (3), 1234-1240"
+    venueName = venueName.replace(/\s*\d+\s*\(\d[^)]*\)\s*$/, '').trim();  // Strip "65 (3)"
+    venueName = venueName.replace(/,?\s*\d+\s*,\s*\d[\d\s,\-–—]*$/, '').trim();  // Strip "72, 166-176"
+    venueName = venueName.replace(/,?\s*\d+[\-–—]\d+\s*$/, '').trim();  // Strip ", 371-394" or ", 371–394"
+    venueName = venueName.replace(/,?\s*\d{4}\s*$/, '').trim();  // Strip trailing year
     venueName = venueName.replace(/\s+\d+\s*$/, '').trim();  // Strip trailing standalone volume number
     venueName = venueName.replace(/,\s*$/, '').trim();
     venueName = venueName.replace(/^Proceedings of the\s*/i, '').trim();
     venueName = venueName.replace(/^Proceedings of\s*/i, '').trim();
-    venueName = venueName.replace(/^(ACM\/IEEE|IEEE\/ACM|ACM|IEEE)\s+/i, '').trim();
+    // Strip leading year + ordinal (e.g. "2023 IEEE 47th Annual ...")
+    venueName = venueName.replace(/^\d{4}\s+/i, '').trim();
+    // Only strip IEEE/ACM prefix when followed by ordinal or "International/Annual/Conference/Workshop/Symposium"
+    venueName = venueName.replace(/^(ACM\/IEEE|IEEE\/ACM|ACM|IEEE)\s+(?=\d|\d*(st|nd|rd|th)\s|International\s|Annual\s|Conference\s|Workshop\s|Symposium\s)/i, '').trim();
     venueName = venueName.replace(/^\d+(st|nd|rd|th)\s+/i, '').trim();
+    venueName = venueName.replace(/^Annual\s+/i, '').trim();
     // Remove written ordinals like "Thirty-First", "Twenty-Second", etc.
     venueName = venueName.replace(/^(First|Second|Third|Fourth|Fifth|Sixth|Seventh|Eighth|Ninth|Tenth|Eleventh|Twelfth|Thirteenth|Fourteenth|Fifteenth|Sixteenth|Seventeenth|Eighteenth|Nineteenth|Twentieth|Twenty-First|Twenty-Second|Twenty-Third|Twenty-Fourth|Twenty-Fifth|Twenty-Sixth|Twenty-Seventh|Twenty-Eighth|Twenty-Ninth|Thirtieth|Thirty-First|Thirty-Second|Thirty-Third|Thirty-Fourth|Thirty-Fifth|Thirty-Sixth|Thirty-Seventh|Thirty-Eighth|Thirty-Ninth|Fortieth)\s+/i, '').trim();
+    venueName = venueName.replace(/\s*\([^)]+\)\s*$/, '').trim();  // Strip trailing parenthetical e.g. "(COMPSAC)", "(Big Data)"
     venueName = venueName.replace(/\s*[…\.]{3,}\s*$/, '').trim();
     venueName = venueName.replace(/\s*…\s*$/, '').trim();
 
@@ -1180,45 +1204,7 @@
       // Skip if already processed
       if (result.querySelector('.gs-orderer-badge-container')) return;
 
-      // On author profile pages, the venue is in the second .gs_gray element (third line)
-      // Structure: Title (link), Authors (gray), Venue (gray)
-      const grayElements = result.querySelectorAll('.gs_gray');
-
-      // The venue line is typically the second gray element
-      let venueLine = null;
-      if (grayElements.length >= 2) {
-        venueLine = grayElements[1];  // Second gray element is the venue
-      } else if (grayElements.length === 1) {
-        venueLine = grayElements[0];  // Sometimes there's only one gray element
-      }
-
-      if (!venueLine) {
-        console.log('[Scholar Orderer] Profile result', index, ': No venue line found');
-        return;
-      }
-
-      // Extract venue name - it's usually the text content, possibly with year at the end
-      let venueName = venueLine.textContent.trim();
-
-      // Remove year and volume info at the end (e.g., ", 2023" or "42 (3), 2023")
-      venueName = venueName.replace(/,?\s*\d{4}\s*$/, '').trim();
-      venueName = venueName.replace(/\s*\d+\s*\([^)]*\)\s*$/, '').trim();
-      venueName = venueName.replace(/,\s*$/, '').trim();
-
-      // Remove "Proceedings of the" prefix and ordinal numbers (e.g., "16th", "27th")
-      // "Proceedings of the ACM/IEEE 16th International Conference on Cyber-Physical …"
-      // -> "International Conference on Cyber-Physical"
-      venueName = venueName.replace(/^Proceedings of the\s*/i, '').trim();
-      venueName = venueName.replace(/^Proceedings of\s*/i, '').trim();
-      // Remove organization prefixes like "ACM/IEEE", "IEEE/ACM", "ACM", "IEEE" followed by ordinals
-      venueName = venueName.replace(/^(ACM\/IEEE|IEEE\/ACM|ACM|IEEE)\s+/i, '').trim();
-      // Remove ordinal numbers like "16th", "27th", "1st", "2nd", "3rd"
-      venueName = venueName.replace(/^\d+(st|nd|rd|th)\s+/i, '').trim();
-      // Remove written ordinals like "Thirty-First", "Twenty-Second", etc.
-      venueName = venueName.replace(/^(First|Second|Third|Fourth|Fifth|Sixth|Seventh|Eighth|Ninth|Tenth|Eleventh|Twelfth|Thirteenth|Fourteenth|Fifteenth|Sixteenth|Seventeenth|Eighteenth|Nineteenth|Twentieth|Twenty-First|Twenty-Second|Twenty-Third|Twenty-Fourth|Twenty-Fifth|Twenty-Sixth|Twenty-Seventh|Twenty-Eighth|Twenty-Ninth|Thirtieth|Thirty-First|Thirty-Second|Thirty-Third|Thirty-Fourth|Thirty-Fifth|Thirty-Sixth|Thirty-Seventh|Thirty-Eighth|Thirty-Ninth|Fortieth)\s+/i, '').trim();
-      // Remove trailing ellipsis and everything after
-      venueName = venueName.replace(/\s*[…\.]{3,}\s*$/, '').trim();
-      venueName = venueName.replace(/\s*…\s*$/, '').trim();
+      const venueName = extractVenueNameFromProfileRow(result);
 
       console.log('[Scholar Orderer] Profile result', index, ': Detected venue:', venueName);
 
@@ -1237,7 +1223,11 @@
       const badgeContainer = createBadgeContainer(ranking);
 
       // Insert badge after venue text
-      venueLine.appendChild(badgeContainer);
+      const grayElements = result.querySelectorAll('.gs_gray');
+      const venueLine = grayElements.length >= 2 ? grayElements[1] : grayElements[0];
+      if (venueLine) {
+        venueLine.appendChild(badgeContainer);
+      }
     });
   }
 

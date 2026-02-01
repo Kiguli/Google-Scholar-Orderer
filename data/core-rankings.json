@@ -5287,7 +5287,8 @@
       "fullName": "International Conference on Artificial Intelligence",
       "core": "C",
       "h5": 0,
-      "era": "C"
+      "era": "C",
+      "exactMatch": true
     },
     "IC3K": {
       "fullName": "International Joint Conference on Knowledge Discovery, Knowledge Engineering and Knowledge Management",
@@ -16650,7 +16651,8 @@
     "ICAI": {
       "fullName": "International Conference on Artificial Intelligence",
       "qualis": "B2",
-      "h5": 16
+      "h5": 16,
+      "exactMatch": true
     },
     "ICAIE": {
       "fullName": "International Conference on Artificial Intelligence and Education",
@@ -19624,6 +19626,14 @@
       "fullName": "International Workshop on Reduction Strategies in Rewriting and Programming",
       "qualis": "B5",
       "h5": 1
+    },
+    "AITest": {
+      "fullName": "IEEE International Conference on Artificial Intelligence Testing",
+      "h5": 0
+    },
+    "CCKS": {
+      "fullName": "China Conference on Knowledge Graph and Semantic Computing",
+      "h5": 0
     }
   },
   "journals": {
@@ -42699,7 +42709,7 @@
     "Electronics": {
       "fullName": "Electronics",
       "sjr": "Q2",
-      "h5": 12,
+      "h5": 115,
       "exactMatch": true
     },
     "ElectronicsSwitzerland": {
@@ -49703,7 +49713,8 @@
     "IJ5": {
       "fullName": "International Journal",
       "sjr": "Q2",
-      "h5": 32
+      "h5": 32,
+      "exactMatch": true
     },
     "IJA": {
       "fullName": "Indian Journal of Anaesthesia",
@@ -54425,7 +54436,8 @@
       "sjr": "Q1",
       "jcr": "Q1",
       "if": 8.1,
-      "h5": 145
+      "h5": 145,
+      "exactMatch": true
     },
     "INS2": {
       "fullName": "Intelligence and National Security",
@@ -55654,7 +55666,10 @@
     "ITR": {
       "fullName": "IEEE Transactions on Reliability",
       "sjr": "Q1",
-      "h5": 125
+      "h5": 125,
+      "core": "A",
+      "jcr": "Q1",
+      "if": 5.0
     },
     "ITR(ETEI": {
       "fullName": "IETE Technical Review (Institution of Electronics and Telecommunication Engineers, India)",
@@ -96802,6 +96817,11 @@
       "fullName": "rEFLections",
       "sjr": "Q2",
       "h5": 9
+    },
+    "IJPE_PERF": {
+      "fullName": "International Journal of Performability Engineering",
+      "sjr": "Q4",
+      "h5": 30
     }
   },
   "aliases": {
@@ -96874,7 +96894,6 @@
     "International Journal of Computer Vision": "IJCV",
     "Int. J. Comput. Vis.": "IJCV",
     "Artificial Intelligence Journal": "AIJ",
-    "Artificial Intelligence": "AIJ",
     "Artif. Intell.": "AIJ",
     "IEEE Transactions on Knowledge and Data Engineering": "TKDE",
     "IEEE Trans. Knowl. Data Eng.": "TKDE",
@@ -97720,7 +97739,13 @@
     "Proceedings of the International Workshop on Simulation for Energy, Sustainable Development and Environment, SESDE": "SD10",
     "World Sustainable Development Outlook": "SD10",
     "International Symposium on Technology and Society, Proceedings": "ISTAS",
-    "Proceedings of the International Symposium on Symbolic and Algebraic Computation, ISSAC": "ISSAC"
+    "Proceedings of the International Symposium on Symbolic and Algebraic Computation, ISSAC": "ISSAC",
+    "Information Processing & Management": "IPM",
+    "Information Processing and Management": "IPM",
+    "Computers, Software, and Applications Conference": "COMPSAC",
+    "Computers Software and Applications Conference": "COMPSAC",
+    "International Conference on Artificial Intelligence Testing": "AITest",
+    "Frontiers Big Data": "FBD"
   },
   "lastUpdated": "2025-01-28",
   "sources": {
