@@ -277,7 +277,8 @@
       if (part !== prev) debug(`  After volume+pages removal: "${part}"`);
 
       prev = part;
-      part = part.replace(/,?\s*\d+[\-–—]\d+\s*$/, '').trim();     // Remove page numbers
+      part = part.replace(/,?\s*\d+\s*[\-–—]\s*\d+\s*$/, '').trim();     // Remove page numbers
+      part = part.replace(/,?\s*\d+\s*[\-–—]\s*$/, '').trim();           // Remove truncated page range "2153-"
       if (part !== prev) debug(`  After page numbers removal: "${part}"`);
 
       prev = part;
@@ -865,7 +866,8 @@
     venueName = venueName.replace(/\s*\d+\s*\(\d[^)]*\),?\s*\d[\d\s,\-–—]*$/, '').trim();  // Strip "65 (3), 1234-1240"
     venueName = venueName.replace(/\s*\d+\s*\(\d[^)]*\)\s*$/, '').trim();  // Strip "65 (3)"
     venueName = venueName.replace(/,?\s*\d+\s*,\s*\d[\d\s,\-–—]*$/, '').trim();  // Strip "72, 166-176"
-    venueName = venueName.replace(/,?\s*\d+[\-–—]\d+\s*$/, '').trim();  // Strip ", 371-394" or ", 371–394"
+    venueName = venueName.replace(/,?\s*\d+\s*[\-–—]\s*\d+\s*$/, '').trim();  // Strip ", 371-394" or ", 371 – 394"
+    venueName = venueName.replace(/,?\s*\d+\s*[\-–—]\s*$/, '').trim();  // Strip truncated page range ", 2153-"
     venueName = venueName.replace(/,?\s*\d{4}\s*$/, '').trim();  // Strip trailing year
     venueName = venueName.replace(/\s+\d+\s*$/, '').trim();  // Strip trailing standalone volume number
     venueName = venueName.replace(/,\s*$/, '').trim();

@@ -19106,7 +19106,8 @@
     },
     "BigData_CONF": {
       "fullName": "IEEE International Conference on Big Data",
-      "core": "B"
+      "core": "B",
+      "h5": 54
     },
     "CAGD_CONF": {
       "fullName": "International Symposium of Computer Aided Geometric Design",
