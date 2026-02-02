@@ -890,7 +890,7 @@
     // Clean up venue name — order matters: strip page ranges before years
     venueName = venueName.replace(/\s*\d+\s*\(\d[^)]*\),?\s*[a-z]?\d[\d\s,\-–—]*$/, '').trim();  // Strip "65 (3), 1234-1240" or "9 (8), e104893"
     venueName = venueName.replace(/\s*\d+\s*\(\d[^)]*\)\s*$/, '').trim();  // Strip "65 (3)"
-    venueName = venueName.replace(/,?\s*\d+\s*,\s*\d[\d\s,\-–—]*$/, '').trim();  // Strip "72, 166-176"
+    venueName = venueName.replace(/,?\s*\d+\s*,\s*[a-z]?\d[\d\s,\-–—]*$/, '').trim();  // Strip "72, 166-176" or "2, e259"
     venueName = venueName.replace(/,?\s*\d+\s*[\-–—]\s*\d+\s*$/, '').trim();  // Strip ", 371-394" or ", 371 – 394"
     venueName = venueName.replace(/,?\s*\d+\s*[\-–—]\s*$/, '').trim();  // Strip truncated page range ", 2153-"
     venueName = venueName.replace(/,?\s*\d{4}\s*$/, '').trim();  // Strip trailing year
