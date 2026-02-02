@@ -12463,7 +12463,8 @@
     "SysCon": {
       "fullName": "IEEE Systems Conference",
       "core": "C",
-      "h5": 0
+      "h5": 0,
+      "era": "C"
     },
     "SysML": {
       "fullName": "Conference on Machine Learning and Systems",
@@ -14400,11 +14401,6 @@
       "era": "A",
       "h5": 25,
       "qualis": "B1"
-    },
-    "SYSCON": {
-      "fullName": "IEEE Systems Conference",
-      "era": "C",
-      "h5": 0
     },
     "TENCON": {
       "fullName": "IEEE Tencon (IEEE Region 10 Conference)",
@@ -96823,6 +96819,11 @@
       "fullName": "International Journal of Performability Engineering",
       "sjr": "Q4",
       "h5": 30
+    },
+    "PAMJ": {
+      "fullName": "The Pan African Medical Journal",
+      "sjr": "Q3",
+      "h5": 53
     }
   },
   "aliases": {
@@ -97746,7 +97747,16 @@
     "Computers, Software, and Applications Conference": "COMPSAC",
     "Computers Software and Applications Conference": "COMPSAC",
     "International Conference on Artificial Intelligence Testing": "AITest",
-    "Frontiers Big Data": "FBD"
+    "Frontiers Big Data": "FBD",
+    "ACM/SIGAPP Symposium on Applied Computing": "SAC",
+    "Computer Safety, Reliability, and Security": "SAFECOMP",
+    "IEEE International Systems Conference": "SysCon",
+    "International Systems Conference": "SysCon",
+    "International Conference on Mobile Ad Hoc and Smart Systems": "MASS",
+    "IEEE International Conference on Mobile Ad Hoc and Smart Systems": "MASS",
+    "AI Verification": "SAIV",
+    "BMJ: British Medical Journal": "BMJ",
+    "British Medical Journal": "BMJ"
   },
   "lastUpdated": "2025-01-28",
   "sources": {

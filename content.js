@@ -135,6 +135,7 @@
   function normalizeString(str) {
     return str
       .toLowerCase()
+      .replace(/&/g, 'and')
       .replace(/[^a-z0-9\s]/g, '')
       .replace(/\s+/g, ' ')
       .trim();
@@ -249,6 +250,11 @@
 
       debug(`  -> Processing this part`);
       const originalPart = part;
+
+      // Workshop papers: "SafeAI@ AAAI" — use the parent conference
+      if (part.includes('@ ')) {
+        part = part.split('@ ').pop().trim();
+      }
 
       // Clean up the venue part
       // First remove leading ellipsis (truncated start)
@@ -862,8 +868,27 @@
 
     let venueName = venueLine.textContent.trim();
 
+    // Workshop papers: "SafeAI@ AAAI" or "AISafety/SafeRL@ IJCAI" — use the parent conference
+    if (venueName.includes('@ ')) {
+      venueName = venueName.split('@ ').pop().trim();
+    }
+    // Workshop papers: "ICML 2023 Workshop ..." — use the parent conference acronym
+    const workshopMatch = venueName.match(/^([A-Z][A-Za-z*]+)\s+\d{4}\s+Workshop\b/i);
+    if (workshopMatch) {
+      venueName = workshopMatch[1];
+    }
+    // Springer book title format: "Topic: Nth Conference, ACRONYM YEAR, City, Country"
+    // Extract topic before colon as venue name
+    if (venueName.includes(': ')) {
+      const afterColon = venueName.split(': ').slice(1).join(': ');
+      if (/conference|symposium|workshop/i.test(afterColon)) {
+        const beforeColon = venueName.split(': ')[0].trim();
+        venueName = beforeColon;
+      }
+    }
+
     // Clean up venue name — order matters: strip page ranges before years
-    venueName = venueName.replace(/\s*\d+\s*\(\d[^)]*\),?\s*\d[\d\s,\-–—]*$/, '').trim();  // Strip "65 (3), 1234-1240"
+    venueName = venueName.replace(/\s*\d+\s*\(\d[^)]*\),?\s*[a-z]?\d[\d\s,\-–—]*$/, '').trim();  // Strip "65 (3), 1234-1240" or "9 (8), e104893"
     venueName = venueName.replace(/\s*\d+\s*\(\d[^)]*\)\s*$/, '').trim();  // Strip "65 (3)"
     venueName = venueName.replace(/,?\s*\d+\s*,\s*\d[\d\s,\-–—]*$/, '').trim();  // Strip "72, 166-176"
     venueName = venueName.replace(/,?\s*\d+\s*[\-–—]\s*\d+\s*$/, '').trim();  // Strip ", 371-394" or ", 371 – 394"
@@ -881,9 +906,11 @@
     venueName = venueName.replace(/^Annual\s+/i, '').trim();
     // Remove written ordinals like "Thirty-First", "Twenty-Second", etc.
     venueName = venueName.replace(/^(First|Second|Third|Fourth|Fifth|Sixth|Seventh|Eighth|Ninth|Tenth|Eleventh|Twelfth|Thirteenth|Fourteenth|Fifteenth|Sixteenth|Seventeenth|Eighteenth|Nineteenth|Twentieth|Twenty-First|Twenty-Second|Twenty-Third|Twenty-Fourth|Twenty-Fifth|Twenty-Sixth|Twenty-Seventh|Twenty-Eighth|Twenty-Ninth|Thirtieth|Thirty-First|Thirty-Second|Thirty-Third|Thirty-Fourth|Thirty-Fifth|Thirty-Sixth|Thirty-Seventh|Thirty-Eighth|Thirty-Ninth|Fortieth)\s+/i, '').trim();
+    venueName = venueName.replace(/,\s*[A-Z][A-Z0-9]+\s+\d{4},.*$/, '').trim();  // Strip ", SAIV 2025, Zagreb, Croatia"
     venueName = venueName.replace(/\s*\([^)]+\)\s*$/, '').trim();  // Strip trailing parenthetical e.g. "(COMPSAC)", "(Big Data)"
     venueName = venueName.replace(/\s*[…\.]{3,}\s*$/, '').trim();
     venueName = venueName.replace(/\s*…\s*$/, '').trim();
+    venueName = venueName.replace(/\s*\([^)]*$/, '').trim();  // Strip unclosed trailing parenthetical e.g. "(ICE"
 
     return venueName || null;
   }
