@@ -98,6 +98,21 @@ A browser extension that enhances Google Scholar with citation-based sorting, mu
 4. Click **Load unpacked**
 5. Select the `Google-Scholar-Orderer` folder
 
+### Safari (macOS)
+
+**Requirements:** Xcode 12+ and macOS 10.15+
+
+1. Download or clone this repository
+2. Run the Safari web extension converter:
+   ```bash
+   xcrun safari-web-extension-converter /path/to/Google-Scholar-Orderer
+   ```
+3. Open the generated Xcode project
+4. Select **Product → Run** to build and launch Safari with the extension
+5. In Safari, go to **Settings → Extensions** and enable Google Scholar Orderer
+
+> **Note**: Safari 15.4+ is required for full Manifest V3 support.
+
 ## Usage
 
 1. Go to [Google Scholar](https://scholar.google.com)
