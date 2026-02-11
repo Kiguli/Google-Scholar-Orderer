@@ -343,8 +343,12 @@
     return null;
   }
 
+  const rankingCache = new Map();
+
   function findRanking(venueName) {
     if (!rankingsData || !venueName) return null;
+
+    if (rankingCache.has(venueName)) return rankingCache.get(venueName);
 
     const normalized = normalizeString(venueName);
 
@@ -385,11 +389,15 @@
           // Found alias, look up the canonical name
           if (rankingsData.conferences[canonical]) {
             console.log('[Scholar Orderer] Matched via alias:', alias, '->', canonical);
-            return { ...rankingsData.conferences[canonical], key: canonical, type: 'conference' };
+            const result = { ...rankingsData.conferences[canonical], key: canonical, type: 'conference' };
+            rankingCache.set(venueName, result);
+            return result;
           }
           if (rankingsData.journals[canonical]) {
             console.log('[Scholar Orderer] Matched via alias:', alias, '->', canonical);
-            return { ...rankingsData.journals[canonical], key: canonical, type: 'journal' };
+            const result = { ...rankingsData.journals[canonical], key: canonical, type: 'journal' };
+            rankingCache.set(venueName, result);
+            return result;
           }
         }
       }
@@ -401,7 +409,9 @@
 
       if (fullNameNorm && isFullNameMatch(normalized, fullNameNorm, data.exactMatch)) {
         console.log('[Scholar Orderer] Matched conference by full name:', key);
-        return { ...data, key, type: 'conference' };
+        const result = { ...data, key, type: 'conference' };
+        rankingCache.set(venueName, result);
+        return result;
       }
     }
 
@@ -411,11 +421,14 @@
 
       if (fullNameNorm && isFullNameMatch(normalized, fullNameNorm, data.exactMatch)) {
         console.log('[Scholar Orderer] Matched journal by full name:', key);
-        return { ...data, key, type: 'journal' };
+        const result = { ...data, key, type: 'journal' };
+        rankingCache.set(venueName, result);
+        return result;
       }
     }
 
     console.log('[Scholar Orderer] No match found for:', venueName);
+    rankingCache.set(venueName, null);
     return null;
   }
 
@@ -919,12 +932,14 @@
     const results = document.querySelectorAll(CONFIG.selectors.profileResultItem);
     const core = { 'A*': 0, 'A': 0, 'B': 0, 'C': 0, 'Unranked': 0, total: 0 };
     const sjr = { 'Q1': 0, 'Q2': 0, 'Q3': 0, 'Q4': 0, 'Unranked': 0, total: 0 };
+    const jcr = { 'Q1': 0, 'Q2': 0, 'Q3': 0, 'Q4': 0, 'Unranked': 0, total: 0 };
     const era = { 'A': 0, 'B': 0, 'C': 0, 'Unranked': 0, total: 0 };
     const qualis = { 'A1': 0, 'A2': 0, 'B1': 0, 'B2': 0, 'B3': 0, 'B4': 0, 'B5': 0, 'Unranked': 0, total: 0 };
 
     results.forEach((result) => {
       core.total++;
       sjr.total++;
+      jcr.total++;
       era.total++;
       qualis.total++;
 
@@ -932,6 +947,7 @@
       if (!venueName) {
         core['Unranked']++;
         sjr['Unranked']++;
+        jcr['Unranked']++;
         era['Unranked']++;
         qualis['Unranked']++;
         return;
@@ -951,6 +967,12 @@
         sjr['Unranked']++;
       }
 
+      if (ranking && ranking.jcr) {
+        jcr[ranking.jcr]++;
+      } else {
+        jcr['Unranked']++;
+      }
+
       if (ranking && ranking.era) {
         era[ranking.era]++;
       } else {
@@ -964,7 +986,7 @@
       }
     });
 
-    return { core, sjr, era, qualis };
+    return { core, sjr, jcr, era, qualis };
   }
 
   function createRankingDistributionBar() {
@@ -997,6 +1019,13 @@
         { key: 'Q4', color: '#d4e6f1', textColor: '#212529' },
         { key: 'Unranked', color: '#e0e0e0', textColor: '#757575' }
       ],
+      jcr: [
+        { key: 'Q1', color: '#e65100', textColor: '#ffffff' },
+        { key: 'Q2', color: '#fb8c00', textColor: '#ffffff' },
+        { key: 'Q3', color: '#ffb74d', textColor: '#212529' },
+        { key: 'Q4', color: '#ffe0b2', textColor: '#212529' },
+        { key: 'Unranked', color: '#e0e0e0', textColor: '#757575' }
+      ],
       era: [
         { key: 'A', color: '#00695c', textColor: '#ffffff' },
         { key: 'B', color: '#26a69a', textColor: '#ffffff' },
@@ -1018,12 +1047,13 @@
     const titles = {
       core: 'CORE Ranking Distribution',
       sjr: 'SJR Quartile Distribution',
+      jcr: 'JCR Quartile Distribution',
       era: 'ERA Ranking Distribution',
       qualis: 'QUALIS Ranking Distribution'
     };
 
     // Determine default mode: whichever has more ranked publications
-    const modes = ['core', 'sjr', 'era', 'qualis'];
+    const modes = ['core', 'sjr', 'jcr', 'era', 'qualis'];
     const rankedCounts = {};
     modes.forEach(m => {
       rankedCounts[m] = distributions[m].total - distributions[m]['Unranked'];
@@ -1076,7 +1106,7 @@
     `;
 
     const buttons = {};
-    ['CORE', 'SJR', 'ERA', 'QUALIS'].forEach(label => {
+    ['CORE', 'SJR', 'JCR', 'ERA', 'QUALIS'].forEach(label => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.textContent = label;
