@@ -19019,7 +19019,6 @@
       "fullName": "International Conference on Autonomous Agents and Multi-Agent Systems",
       "core": "A*",
       "h5": 50,
-      "exactMatch": true,
       "era": "A",
       "qualis": "A1"
     },
@@ -102712,6 +102711,10 @@
       "h5": 134,
       "jcr": "Q2"
     },
+    "TMLR": {
+      "fullName": "Transactions on Machine Learning Research",
+      "sjr": "Q2"
+    },
     "TMM": {
       "fullName": "IEEE Transactions on Multimedia",
       "core": "A",
@@ -107306,6 +107309,10 @@
     "Int J Control Autom Syst": "IJCAS",
     "International Conference on Autonomous Agents and Multi-Agent Systems": "AAMAS_CONF",
     "International Conference on Autonomous Agents and Multiagent Systems": "AAMAS_CONF",
+    "International Joint Conference on Autonomous Agents and Multiagent Systems": "AAMAS_CONF",
+    "Conference on Autonomous Agents and MultiAgent Systems": "AAMAS_CONF",
+    "Autonomous Systems and Multi-Agent Systems": "AAMAS_CONF",
+    "AAMAS": "AAMAS_CONF",
     "Annual Reviews in Control": "ARC",
     "Annu Rev Control": "ARC",
     "Fractional Calculus and Applied Analysis": "FCAA",
@@ -107615,7 +107622,7 @@
     "International Symposium on Empirical Software Engineering and Measurement": "ESE",
     "Proceedings - Symposium on Computer Arithmetic": "ARITH",
     "Proceedings - IEEE International Conference on Computer Design: VLSI in Computers and Processors": "ICCD",
-    "Proceedings - International Conference on Computational Linguistics, COLING": "CL_CONF",
+    "Proceedings - International Conference on Computational Linguistics, COLING": "COLING",
     "Proceedings - IEEE Consumer Communications and Networking Conference, CCNC": "IEEE_CCNC",
     "IEEE International Conference on Cloud Computing, CLOUD": "CLOUD",
     "Proceedings - IEEE International Conference on Cluster Computing, ICCC": "ClusterComputing",

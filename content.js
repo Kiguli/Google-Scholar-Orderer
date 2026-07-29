@@ -345,6 +345,28 @@
 
   const rankingCache = new Map();
 
+  function lookupEntry(key) {
+    if (rankingsData.conferences[key]) return { ...rankingsData.conferences[key], key, type: 'conference' };
+    if (rankingsData.journals[key]) return { ...rankingsData.journals[key], key, type: 'journal' };
+    return null;
+  }
+
+  // Normalized-name -> canonical key, built once. Precedence matches the fuzzy pass below:
+  // aliases, then conferences, then journals.
+  let exactIndex = null;
+
+  function buildExactIndex() {
+    const idx = new Map();
+    const add = (name, key) => {
+      const n = normalizeString(name || '');
+      if (n && !idx.has(n)) idx.set(n, key);
+    };
+    for (const [alias, canonical] of Object.entries(rankingsData.aliases || {})) add(alias, canonical);
+    for (const [key, data] of Object.entries(rankingsData.conferences)) add(data.fullName, key);
+    for (const [key, data] of Object.entries(rankingsData.journals)) add(data.fullName, key);
+    return idx;
+  }
+
   function findRanking(venueName) {
     if (!rankingsData || !venueName) return null;
 
@@ -354,6 +376,22 @@
 
     // Debug logging
     console.log('[Scholar Orderer] Trying to match venue:', venueName, '-> normalized:', normalized);
+
+    // Exact match wins over everything. Without this a venue that IS in the database can
+    // still lose to whichever longer entry happens to contain it first — e.g. the AAMAS
+    // journal losing to the AAMAS conference, whose name contains the journal's name.
+    // This is also what makes short aliases ("NIPS", "AAMAS") usable: they are far too
+    // ambiguous for the substring matching below, but are unambiguous on an exact hit.
+    if (!exactIndex) exactIndex = buildExactIndex();
+    const exactKey = exactIndex.get(normalized);
+    if (exactKey) {
+      const result = lookupEntry(exactKey);
+      if (result) {
+        console.log('[Scholar Orderer] Exact match:', exactKey);
+        rankingCache.set(venueName, result);
+        return result;
+      }
+    }
 
     // Check if detected venue matches target full name
     // If exactMatch is true, require exact match only
@@ -900,6 +938,11 @@
       }
     }
 
+    // Scholar truncates long venue lines with "…" and appends the year *after* it, e.g.
+    // "...Artificial Intelligence 40 (17), 14140…, 2026". Drop the ellipsis and that year
+    // first, otherwise none of the $-anchored cleanup below can fire.
+    venueName = venueName.replace(/\s*(?:…|\.{3,})\s*,?\s*\d{4}\s*$/, '').trim();
+
     // Clean up venue name — order matters: strip page ranges before years
     venueName = venueName.replace(/\s*\d+\s*\(\d[^)]*\),?\s*[a-z]?\d[\d\s,\-–—]*$/, '').trim();  // Strip "65 (3), 1234-1240" or "9 (8), e104893"
     venueName = venueName.replace(/\s*\d+\s*\(\d[^)]*\)\s*$/, '').trim();  // Strip "65 (3)"
@@ -909,8 +952,9 @@
     venueName = venueName.replace(/,?\s*\d{4}\s*$/, '').trim();  // Strip trailing year
     venueName = venueName.replace(/\s+\d+\s*$/, '').trim();  // Strip trailing standalone volume number
     venueName = venueName.replace(/,\s*$/, '').trim();
-    venueName = venueName.replace(/^Proceedings of the\s*/i, '').trim();
-    venueName = venueName.replace(/^Proceedings of\s*/i, '').trim();
+    // "Proc. of the ..." is how AAMAS/AAAI proceedings titles reach Scholar
+    venueName = venueName.replace(/^Proc(?:eedings|\.)?\s+of\s+the\s*/i, '').trim();
+    venueName = venueName.replace(/^Proc(?:eedings|\.)?\s+of\s*/i, '').trim();
     // Strip leading year + ordinal (e.g. "2023 IEEE 47th Annual ...")
     venueName = venueName.replace(/^\d{4}\s+/i, '').trim();
     // Only strip IEEE/ACM prefix when followed by ordinal or "International/Annual/Conference/Workshop/Symposium"
@@ -924,6 +968,10 @@
     venueName = venueName.replace(/\s*[…\.]{3,}\s*$/, '').trim();
     venueName = venueName.replace(/\s*…\s*$/, '').trim();
     venueName = venueName.replace(/\s*\([^)]*$/, '').trim();  // Strip unclosed trailing parenthetical e.g. "(ICE"
+    // A truncated tail can leave a dangling volume number and acronym behind once the
+    // unclosed parenthetical goes, e.g. "...Artificial Intelligence (AAAI) 38 (19…"
+    venueName = venueName.replace(/\s+\d+\s*$/, '').trim();
+    venueName = venueName.replace(/\s*\([^)]+\)\s*$/, '').trim();
 
     return venueName || null;
   }
