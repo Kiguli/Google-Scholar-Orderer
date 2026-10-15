@@ -29,7 +29,8 @@
       'A*': { color: '#1e7e34', textColor: '#ffffff' },
       'A':  { color: '#28a745', textColor: '#ffffff' },
       'B':  { color: '#ffc107', textColor: '#212529' },
-      'C':  { color: '#6c757d', textColor: '#ffffff' }
+      'C':  { color: '#6c757d', textColor: '#ffffff' },
+      'PrePrint': { color: '#2b2b2b', textColor: '#ffffff' }
     },
     // SJR quartile colors
     sjrBadges: {
@@ -373,6 +374,7 @@
     if (rankingCache.has(venueName)) return rankingCache.get(venueName);
 
     const normalized = normalizeString(venueName);
+    const venueLower = venueName.toLowerCase();
 
     // Debug logging
     console.log('[Scholar Orderer] Trying to match venue:', venueName, '-> normalized:', normalized);
@@ -392,6 +394,20 @@
         return result;
       }
     }
+
+    // --- NEW PREPRINT INTERCEPTION ---
+    if (venueLower.includes("cryptology eprint archive") || venueLower.includes("arxiv")) {
+      const isEprint = venueLower.includes("eprint");
+      const preprintResult = {
+        fullName: isEprint ? "Cryptology ePrint Archive" : "arXiv Preprint Archive",
+        core: "PrePrint",
+        key: "PrePrint",
+        type: "conference"
+      };
+      rankingCache.set(venueName, preprintResult);
+      return preprintResult;
+    }
+    // ---------------------------------
 
     // Check if detected venue matches target full name
     // If exactMatch is true, require exact match only
@@ -978,7 +994,7 @@
 
   function calculateRankingDistribution() {
     const results = document.querySelectorAll(CONFIG.selectors.profileResultItem);
-    const core = { 'A*': 0, 'A': 0, 'B': 0, 'C': 0, 'Unranked': 0, total: 0 };
+    const core = { 'A*': 0, 'A': 0, 'B': 0, 'C': 0, 'PrePrint': 0, 'Unranked': 0, total: 0 };
     const sjr = { 'Q1': 0, 'Q2': 0, 'Q3': 0, 'Q4': 0, 'Unranked': 0, total: 0 };
     const jcr = { 'Q1': 0, 'Q2': 0, 'Q3': 0, 'Q4': 0, 'Unranked': 0, total: 0 };
     const era = { 'A': 0, 'B': 0, 'C': 0, 'Unranked': 0, total: 0 };
@@ -1058,6 +1074,7 @@
         { key: 'A', color: '#28a745', textColor: '#ffffff' },
         { key: 'B', color: '#ffc107', textColor: '#212529' },
         { key: 'C', color: '#6c757d', textColor: '#ffffff' },
+        { key: 'PrePrint', color: '#2b2b2b', textColor: '#ffffff' },
         { key: 'Unranked', color: '#e0e0e0', textColor: '#757575' }
       ],
       sjr: [
@@ -1201,7 +1218,8 @@
       currentMode = mode;
       const dist = distributions[mode];
       const ranks = rankDefs[mode];
-      const rankedKeys = ranks.filter(r => r.key !== 'Unranked').map(r => r.key);
+      // Filter out Unranked and PrePrint from the "Ranked" percentage statistic
+      const rankedKeys = ranks.filter(r => r.key !== 'Unranked' && r.key !== 'PrePrint').map(r => r.key);
       const rankedTotal = rankedKeys.reduce((sum, k) => sum + (dist[k] || 0), 0);
 
       // Update title

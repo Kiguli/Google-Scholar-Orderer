@@ -98,7 +98,7 @@
 }
 
 /* ============================================
-   CORE Badge Specific Styles
+   CORE & PrePrint Badge Specific Styles
    ============================================ */
 
 .gs-orderer-badge-core {
@@ -120,6 +120,12 @@
 
 .gs-orderer-badge-core[data-rank="C"] {
   background: linear-gradient(135deg, #5a6268 0%, #6c757d 100%) !important;
+}
+
+.gs-orderer-badge-core[data-rank="PrePrint"] {
+  background: linear-gradient(135deg, #111111 0%, #2b2b2b 100%) !important;
+  color: #ffffff !important;
+  text-transform: none !important;
 }
 
 /* ============================================

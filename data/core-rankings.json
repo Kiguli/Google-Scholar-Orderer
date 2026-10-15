@@ -247,10 +247,6 @@
       "core": "A*",
       "era": "A"
     },
-    "ACM_WiSec": {
-      "fullName": "ACM Conference on Security and Privacy in Wireless and Mobile Networks",
-      "core": "B"
-    },
     "ACNN": {
       "fullName": "Australian Conference on Neural Networks",
       "core": "C",
@@ -1113,8 +1109,8 @@
     },
     "ASIACRYPT": {
       "fullName": "International Conference on the Theory and Application of Cryptology and Information Security",
-      "core": "A*",
-      "h5": 38,
+      "core": "A",
+      "h5": 53,
       "era": "A",
       "qualis": "A1"
     },
@@ -1358,9 +1354,11 @@
       "fullName": "ArtsIT Interactivity & Game Creation",
       "core": "C"
     },
-    "AsiaCCS": {
-      "fullName": "Asia Conference on Information, Computer and Communications Security",
-      "core": "A"
+    "ASIACCS": {
+      "fullName": "ACM Asia Conference on Computer and Communications Security",
+      "core": "A",
+      "h5": 41,
+      "qualis": "B1"
     },
     "AuCSS": {
       "fullName": "Australasian Cognitive Science Society Conference",
@@ -1801,9 +1799,9 @@
       "h5": 2
     },
     "CCS": {
-      "fullName": "ACM Conference on Computer and Communications Security",
+      "fullName": "ACM SIGSAC Conference on Computer and Communications Securityy",
       "core": "A*",
-      "h5": 79,
+      "h5": 90,
       "era": "A",
       "qualis": "A1"
     },
@@ -1965,7 +1963,7 @@
     "CHES": {
       "fullName": "IACR Conference on Cryptographic Hardware and Embedded Systems",
       "core": "A",
-      "h5": 32,
+      "h5": 57,
       "era": "C",
       "qualis": "A1"
     },
@@ -2324,7 +2322,8 @@
     "CODASPY": {
       "fullName": "ACM Conference on Data and Application Security and Privacy",
       "core": "B",
-      "h5": 18,
+      "h5": 25,
+      "era": "B",
       "qualis": "B4"
     },
     "CODATA": {
@@ -2566,7 +2565,7 @@
     "CRYPTO": {
       "fullName": "International Cryptology Conference",
       "core": "A*",
-      "h5": 52,
+      "h5": 66,
       "era": "A",
       "qualis": "A1"
     },
@@ -4000,7 +3999,7 @@
     "EUROCRYPT": {
       "fullName": "Annual International Conference on the Theory and Applications of Cryptographic Techniques",
       "core": "A*",
-      "h5": 47,
+      "h5": 66,
       "era": "A",
       "qualis": "A1"
     },
@@ -4119,11 +4118,6 @@
       "core": "C",
       "h5": 0
     },
-    "EuroCrypt": {
-      "fullName": "International Conference on the Theory and Application of Cryptographic Techniques",
-      "core": "A*",
-      "h5": 0
-    },
     "EuroGP": {
       "fullName": "European Conference on Genetic Programming",
       "core": "B",
@@ -4149,7 +4143,8 @@
     },
     "EuroS&P": {
       "fullName": "IEEE European Symposium on Security and Privacy",
-      "core": "A"
+      "core": "A",
+      "h5": 52
     },
     "EuroSPI": {
       "fullName": "European SPI",
@@ -4224,7 +4219,7 @@
       "core": "A",
       "era": "A",
       "qualis": "B1",
-      "h5": 36
+      "h5": 50
     },
     "FCC": {
       "fullName": "Formal and Computational Cryptography",
@@ -4308,12 +4303,6 @@
       "core": "C",
       "h5": 49,
       "qualis": "B1"
-    },
-    "FINCRY": {
-      "fullName": "Financial Cryptography",
-      "core": "B",
-      "h5": 0,
-      "era": "B"
     },
     "FIRA": {
       "fullName": "FIRA Robot World Congress",
@@ -6003,10 +5992,10 @@
     },
     "ICICS": {
       "fullName": "International Conference on Information and Communications Security",
-      "core": "C",
+      "core": "B",
+      "h5": 33,
       "era": "B",
-      "qualis": "B1",
-      "h5": 33
+      "qualis": "B1"
     },
     "ICICS2": {
       "fullName": "Proceedings - International Conference on Informatics and Computational Sciences",
@@ -6900,10 +6889,11 @@
       "core": "A",
       "h5": 0
     },
-    "IEEE\n__CCNC": {
+    "IEEE_CCNC": {
       "fullName": "IEEE Consumer Communications and Networking Conference",
       "core": "B",
-      "h5": 0
+      "h5": 32,
+      "era": "C"
     },
     "IEEE\n__CEC": {
       "fullName": "IEEE Congress on Evolutionary Computation",
@@ -7109,11 +7099,6 @@
       "fullName": "IEEE Visualization",
       "core": "A"
     },
-    "IEEE_CCNC": {
-      "fullName": "IEEE Consumer Communications and Networking Conference",
-      "core": "B",
-      "h5": 14
-    },
     "IEEE_IV": {
       "fullName": "Intelligent Vehicles Conference",
       "core": "B"
@@ -7147,10 +7132,6 @@
       "fullName": "Joint iTrust and PST Conferences on Privacy, Trust Management and Security",
       "core": "C",
       "h5": 0
-    },
-    "IFIP_SEC": {
-      "fullName": "IFIP Information Security & Privacy Conference",
-      "core": "B"
     },
     "IFM": {
       "fullName": "International Conference on Integrated Formal Methods",
@@ -9723,7 +9704,7 @@
     "NDSS": {
       "fullName": "Network and Distributed System Security Symposium",
       "core": "A*",
-      "h5": 69,
+      "h5": 72,
       "era": "A",
       "qualis": "A1"
     },
@@ -9806,9 +9787,9 @@
     "NOMS": {
       "fullName": "IEEE Network Operations and Management Symposium",
       "core": "B",
+      "h5": 37,
       "era": "B",
-      "qualis": "A2",
-      "h5": 37
+      "qualis": "A2"
     },
     "NORDCHI": {
       "fullName": "Norwegian Computer Human Interaction",
@@ -10369,7 +10350,7 @@
     "PETS": {
       "fullName": "Privacy Enhancing Technologies Symposium",
       "core": "A",
-      "h5": 42
+      "h5": 56
     },
     "PEWTEC": {
       "fullName": "Proceedings of the European Wave and Tidal Energy Conference",
@@ -11319,7 +11300,7 @@
     "S&P": {
       "fullName": "IEEE Symposium on Security and Privacy",
       "core": "A*",
-      "h5": 98,
+      "h5": 110,
       "era": "A",
       "qualis": "A1"
     },
@@ -11346,9 +11327,9 @@
     "SACMAT": {
       "fullName": "ACM Symposium on Access Control Models and Technologies",
       "core": "B",
+      "h5": 55,
       "era": "C",
-      "qualis": "A1",
-      "h5": 55
+      "qualis": "A1"
     },
     "SAC_Crypt": {
       "fullName": "Selected Areas in Cryptography",
@@ -12803,12 +12784,9 @@
     "USENIX Security": {
       "fullName": "USENIX Security Symposium",
       "core": "A*",
-      "h5": 96
-    },
-    "USENIX-Security": {
-      "fullName": "Usenix Security Symposium",
-      "core": "A*",
-      "h5": 0
+      "h5": 116,
+      "era": "A",
+      "qualis": "A1"
     },
     "UWNTS": {
       "fullName": "USENIX Windows NT Symposium",
@@ -13652,7 +13630,7 @@
     "WiSec": {
       "fullName": "ACM Conference on Security and Privacy in Wireless and Mobile Networks",
       "core": "B",
-      "h5": 24
+      "h5": 25
     },
     "Windsor": {
       "fullName": "Network for Comfort and Energy Use in Buildings Windsor Conference",
@@ -13792,12 +13770,6 @@
       "era": "B",
       "h5": 66,
       "qualis": "A1"
-    },
-    "ASIACCS": {
-      "fullName": "ACM Symposium on Information, Computer and Communications Security",
-      "era": "B",
-      "h5": 32,
-      "qualis": "B1"
     },
     "HOTSWUP": {
       "fullName": "ACM Workshop on Hot Topics in Software Upgrades",
@@ -14210,11 +14182,6 @@
       "era": "A",
       "h5": 0
     },
-    "IEEE CCNC": {
-      "fullName": "IEEE Consumer Communications and Networking Conference",
-      "era": "B",
-      "h5": 0
-    },
     "IEEE GLOBECOM": {
       "fullName": "IEEE Global Telecommunications Conference",
       "era": "B",
@@ -14504,9 +14471,10 @@
       "h5": 0
     },
     "IFIP SEC": {
-      "fullName": "IFIP International Information Security Conference",
-      "era": "B",
-      "h5": 0
+      "fullName": "ICT Systems Security and Privacy Protection",
+      "core": "B",
+      "h5": 17,
+      "era": "B"
     },
     "NETWORKING 200X": {
       "fullName": "IFIP Networking 200X",
@@ -15089,11 +15057,6 @@
       "era": "C",
       "h5": 0
     },
-    "USENIX-SECURITY": {
-      "fullName": "Usenix Security Symposium",
-      "era": "A",
-      "h5": 0
-    },
     "USENIX EC": {
       "fullName": "USENIX Workshop on Electronic Commerce",
       "era": "C",
@@ -15668,11 +15631,6 @@
       "fullName": "Colombian Computing Congress",
       "qualis": "B5",
       "h5": 2
-    },
-    "CCNC": {
-      "fullName": "IEEE Consumer Communications and Networking Conference",
-      "qualis": "B1",
-      "h5": 31
     },
     "CCRTS": {
       "fullName": "International Command and Control Research and Technology Symposium",
@@ -18855,11 +18813,6 @@
       "qualis": "B4",
       "h5": 7
     },
-    "WISEC": {
-      "fullName": "Wireless Network Security",
-      "qualis": "B1",
-      "h5": 22
-    },
     "WISP": {
       "fullName": "IEEE International Workshop on Intelligent Signal Processing",
       "qualis": "B3",
@@ -19494,11 +19447,6 @@
       "fullName": "GAMM / IMACS International Symposion on Scientific Computing Computer Arithmetic and Validated Numerics",
       "qualis": "B4",
       "h5": 7
-    },
-    "SECURITY_CONF": {
-      "fullName": "Usenix Security Symposium",
-      "qualis": "A1",
-      "h5": 81
     },
     "SMC_CONF": {
       "fullName": "IEEE International Conference on Systems Man and Cybernetics",
@@ -84226,14 +84174,6 @@
       "h5": 109,
       "jcr": "Q1"
     },
-    "NETWORK": {
-      "fullName": "IEEE Network",
-      "core": "A",
-      "sjr": "Q1",
-      "jcr": "Q1",
-      "if": 9.3,
-      "h5": 72
-    },
     "NETWORKS": {
       "fullName": "Networks",
       "core": "A",
@@ -85956,13 +85896,6 @@
       "sjr": "Q2",
       "h5": 102,
       "jcr": "Q3"
-    },
-    "Network": {
-      "fullName": "IEEE Network",
-      "sjr": "Q1",
-      "jcr": "Q1",
-      "if": 9.3,
-      "h5": 72
     },
     "NetworkNeuro": {
       "fullName": "Network Neuroscience",
@@ -106941,8 +106874,6 @@
     "IEEE Signal Processing Magazine": "SPMag",
     "IEEE Commun. Mag.": "CommMag",
     "IEEE Communications Magazine": "CommMag",
-    "IEEE Netw.": "NETWORK",
-    "IEEE Network": "Network",
     "IEEE Softw.": "SOFTWARE",
     "IEEE Software": "SOFTWARE",
     "IEEE Comput.": "COMPUTER",
@@ -107074,6 +107005,10 @@
     "IFIP TC13 International Conference on Human-Computer Interaction": "INTERACT",
     "Network and Distributed System Security Symposium": "NDSS",
     "ACM Conference on Computer and Communications Security": "CCS",
+    "ACM SIGSAC Conference on Computer and Communications Security": "CCS",
+    "Financial Cryptography and Data Security": "FC",
+    "Proceeding of Financial Cryptography and Data Security (FC)": "FC",
+    "Proceeding of Financial Cryptography and Data Security": "FC",
     "Privacy Enhancing Technologies Symposium": "PETS",
     "Annual Computer Security Applications Conference": "ACSAC",
     "International Symposium on Research in Attacks Intrusions and Defenses": "RAID",
@@ -107350,7 +107285,6 @@
     "European Symposium on Research in Computer Security": "ESORICS",
     "Research in Computer Security": "ESORICS",
     "IEEE European Symposium on Security and Privacy": "EuroS&P",
-    "European Symposium on Security and Privacy": "EuroS&P",
     "Graph Drawing": "GD",
     "International Symposium on Graph Drawing": "GD",
     "ACM International Symposium on High Performance Distributed Computing": "HPDC",
@@ -107401,7 +107335,6 @@
     "Software Engineering for Adaptive and Self-Managing Systems": "SEAMS",
     "ACM International Conference on Advances in Geographic Information Systems": "SIGSPATIAL",
     "Advances in Geographic Information Systems": "SIGSPATIAL",
-    "Asia Conference on Information Computer and Communications Security": "AsiaCCS",
     "Asia Conference on Computer and Communications Security": "AsiaCCS",
     "ACM/IFIP/USENIX International Middleware Conference": "Middleware",
     "European Symposium on Algorithms": "ESA",
